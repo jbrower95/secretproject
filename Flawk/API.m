@@ -9,13 +9,14 @@
 #import "API.h"
 #import "Friend.h"
 #import <FBSDKCoreKit/FBSDKCoreKit.h>
+#import <ParseFacebookUtilsV4/ParseFacebookUtilsV4.h>
 
 NSString *const API_REFRESH_FAILED_EVENT = @"APIRefreshFailedEvent";
 NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
 
 @implementation API
 
-@synthesize friends;
+@synthesize friends, this_user;
 
 
 - (id)init {
@@ -30,24 +31,34 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
 /* Gets all friends from Facebook. */
 - (void)getAllFriendsWithBlock:(void(^)(NSArray *friends, NSError *error))block {
     
-    NSMutableArray *friends = [[NSMutableArray alloc] init];
+    FBSDKGraphRequest *request = [[FBSDKGraphRequest alloc] initWithGraphPath:@"me/friends" parameters:@{@"fields" : @"id, name, email"}];
     
-    Friend *friend = [[Friend alloc] initWithName:@"Justin Brower" fbId:@"none"];
-    [friends addObject:friend];
-    
-    Friend *friendTwo = [[Friend alloc] initWithName:@"Nate Parrott" fbId:@"none"];
-    
-    [friendTwo setLastLocation:CGPointMake(-42, 61) place:@"Sci Li" area:@"College Hill, RI"];
-    [friends addObject:friendTwo];
-    
-    Friend *friendThree = [[Friend alloc] initWithName:@"Amy Butcher" fbId:@"none"];
-    [friends addObject:friendThree];
-    
-    
-    // TODO: grab all friends from Facebook API.
-    if (block != nil) {
-        block(friends, nil);
-    }
+    [request startWithCompletionHandler:^(FBSDKGraphRequestConnection *connection, id result, NSError *error) {
+        if (error == nil) {
+            // No problemo.
+            NSDictionary *parsedResult = (NSDictionary *)result;
+            
+            NSArray *newFriends = [parsedResult objectForKey:@"data"];
+            
+            if (newFriends != nil) {
+                NSLog(@"Parsing friends.");
+                [[API sharedAPI] parseFriends:newFriends];
+                block(self.friends, nil);
+            } else {
+                NSLog(@"No friends from Facebook.");
+            }
+            
+        } else {
+            // Error
+            if ([error code] == FBSDKGraphRequestGraphAPIErrorCode) {
+                NSLog(@"Experienced an error with the graph api.");
+                NSLog(@"%@", [[error userInfo] objectForKey:FBSDKGraphRequestErrorParsedJSONResponseKey]);
+                block([NSArray array], error);
+            }
+            
+            NSLog(@"%@", [error localizedDescription]);
+        }
+    }];
 }
 
 - (BOOL)isLoggedIn {
@@ -93,9 +104,49 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
         Friend *friend = [[Friend alloc] initWithFacebookDict:dict];
         [friends addObject:friend];
     }
-    
-    NSLog(@"Parsed %lu friends.", [f count]);
 }
+
+
+- (void)initParse {
+    
+    FBSDKAccessToken *token = [FBSDKAccessToken currentAccessToken];
+    
+    if (token == nil) {
+        NSLog(@"[API] Couldn't initialize Parse -- token was nil.");
+        return;
+    }
+    
+    [PFFacebookUtils logInInBackgroundWithAccessToken:token block:^(PFUser * _Nullable user, NSError * _Nullable error) {
+        
+        if (error != nil) {
+            NSLog(@"Error signing in: %@", [error localizedFailureReason]);
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"ParseFailure" object:self];
+        } else {
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"ParseSuccess" object:self];
+            
+            PFInstallation *currentInstallation = [PFInstallation currentInstallation];
+            [currentInstallation setObject:[token userID] forKey:@"facebookId"];
+            [currentInstallation saveInBackgroundWithBlock:^(BOOL succeeded, NSError * _Nullable error) {
+                if (error == nil) {
+                    NSLog(@"[API] Successfully configured installation..");
+                } else {
+                    NSLog(@"[API] Failed to configure installation. - %@", [error localizedFailureReason]);
+                }
+            }];
+        }
+    }];
+    
+}
+
+- (void)requestWhereAt:(Friend *)other {
+    PFQuery *query = [PFInstallation query];
+    [query whereKey:@"facebookId" equalTo:[other fbid]];
+    
+    PFPush *push = [PFPush push];
+    [push setQuery:query];
+    [push sendPushInBackground];
+}
+
 
 static API *sharedAPI;
 

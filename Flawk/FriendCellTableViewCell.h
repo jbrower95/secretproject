@@ -16,7 +16,10 @@
     
     IBOutlet UIButton *whereAtButton;
     
+    Friend *model;
 }
+
+@property (nonatomic, retain) Friend *model;
 
 
 - (void)applyFriend:(Friend *)f;

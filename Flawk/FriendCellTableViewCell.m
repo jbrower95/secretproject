@@ -11,14 +11,12 @@
 @implementation FriendCellTableViewCell
 
 - (void)awakeFromNib {
-    [self setAccessoryType:UITableViewCellAccessoryDetailButton];
     whereAtButton.layer.cornerRadius = 4;
-    
+    [name sizeToFit];
 }
 
 - (IBAction)buttonPressed:(id)sender {
-    
-    NSLog(@"NO!");
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"WhereAtRequest" object:nil userInfo:@{@"username" : [self.model name], @"facebookId" : [self.model fbid]}];
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated {
@@ -28,9 +26,8 @@
 }
 
 - (void)applyFriend:(Friend *)f {
-    
+    self.model = f;
     if (f != nil) {
-        
         [name setText:[f name]];
         
         BOOL locationKnown = [f locationKnown];
@@ -47,14 +44,20 @@
 }
 
 - (void)layoutSubviews {
-    
     CGFloat middle = self.frame.size.height / 2;
     
     const CGFloat location_padding = 3;
     
-    // Vertically center the name with 16px padding on the left.
-    [name setFrame:CGRectMake(16, middle - name.frame.size.height / 2, 120, name.frame.size.height)];
+    CGRect labelRect = [[name text]
+                        boundingRectWithSize:CGSizeMake(200, 0)
+                        options:NSStringDrawingUsesLineFragmentOrigin
+                        attributes:@{
+                                     NSFontAttributeName : [UIFont systemFontOfSize:17]
+                                     }
+                        context:nil];
     
+    // Vertically center the name with 16px padding on the left.
+    [name setFrame:CGRectMake(16, middle - name.frame.size.height / 2, labelRect.size.width, labelRect.size.height)];
     
     int location_width = location.frame.size.width;
     

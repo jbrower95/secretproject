@@ -7,16 +7,18 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "Friend.h" 
 
 FOUNDATION_EXPORT NSString *const API_REFRESH_FAILED_EVENT;
 FOUNDATION_EXPORT NSString *const API_REFRESH_SUCCESS_EVENT;
 
 @interface API : NSObject {
     NSMutableArray *friends;
+    Friend *this_user;
 }
 
 @property (nonatomic, retain) NSMutableArray *friends;
-
+@property (nonatomic, retain) Friend *this_user;
 
 /* Gets all friends from Facebook. */
 - (void)getAllFriendsWithBlock:(void(^)(NSArray *friends, NSError *error))block;
@@ -37,6 +39,12 @@ FOUNDATION_EXPORT NSString *const API_REFRESH_SUCCESS_EVENT;
 
 /* Parses friends and caches them */
 - (void)parseFriends:(NSArray *)friends;
+
+/* Initializes parse by logging in. */
+- (void)initParse;
+
+/* Request where at */
+- (void)requestWhereAt:(Friend *)other;
 
 /* The shared API access */
 + (id)sharedAPI;

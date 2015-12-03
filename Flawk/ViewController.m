@@ -31,6 +31,13 @@
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(refreshFailed:) name:API_REFRESH_FAILED_EVENT object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(refreshSuccess:) name:API_REFRESH_SUCCESS_EVENT object:nil];
     
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(parseFailure:) name:@"ParseFailure" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(parseSuccess:) name:@"ParseSuccess" object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(whereAtRequest:) name:@"WhereAtRequest" object:nil];
+    
+    
+    
     self.navigationItem.title = @"Where are ü now";
     
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Add Friends" style:UIBarButtonItemStylePlain target:self action:@selector(addFriends:)];
@@ -75,8 +82,23 @@
              NSLog(@"Cancelled");
          } else {
              NSLog(@"Logged in");
+             dispatch_async(dispatch_get_main_queue(), ^() {
+                 [self refreshSuccess:nil];
+             });
          }
      }];
+}
+
+- (void)whereAtRequest:(NSNotification *)friendRequest {
+    
+    NSDictionary *info = [friendRequest userInfo];
+    
+    NSLog(@"Received where at request");
+    Friend *f = [[Friend alloc] initWithName:[info objectForKey:@"username"] fbId:[info objectForKey:@"facebookId"]];
+    
+    if (f != nil) {
+        [[API sharedAPI] requestWhereAt:f];
+    }
 }
 
 - (void)refreshFailed:(id)sender {
@@ -85,7 +107,7 @@
     [self login];
 }
 
-- (void)refreshSuccess:(id)sender {
+- (void)refreshSuccess:(NSNotification *)notification {
     NSLog(@"Verifying Facebook permissions...");
     
     NSSet *declinedPermissions = [[FBSDKAccessToken currentAccessToken] declinedPermissions];
@@ -97,34 +119,23 @@
     
     NSSet *permissions = [[FBSDKAccessToken currentAccessToken] permissions];
     
-    NSLog(@"%d permissions granted", [permissions count]);
+    NSLog(@"%lu permissions granted", [permissions count]);
     
-    FBSDKGraphRequest *request = [[FBSDKGraphRequest alloc] initWithGraphPath:@"me/friends" parameters:@{@"fields" : @"id, name, email"}];
+    /* Make yourself a parse account if you don't already have one */
+    [[API sharedAPI] initParse];
     
-    [request startWithCompletionHandler:^(FBSDKGraphRequestConnection *connection, id result, NSError *error) {
-        if (error == nil) {
-            // No problemo.
-            NSDictionary *parsedResult = (NSDictionary *)result;
-            
-            NSArray *newFriends = [parsedResult objectForKey:@"data"];
-            
-            if (newFriends != nil) {
-                [[API sharedAPI] parseFriends:newFriends];
-            } else {
-                NSLog(@"No friends from Facebook.");
-            }
-            
-        } else {
-            // Error
-            if ([error code] == FBSDKGraphRequestGraphAPIErrorCode) {
-                NSLog(@"Experienced an error with the graph api.");
-                NSLog(@"%@", [[error userInfo] objectForKey:FBSDKGraphRequestErrorParsedJSONResponseKey]);
-            }
-            
-            NSLog(@"%@", [error localizedDescription]);
-        }
-    }];
 }
+
+- (void)parseFailure:(id)sender {
+    NSLog(@"[Main] Couldn't associate with parse!");
+}
+
+- (void)parseSuccess:(id)sender {
+    
+    NSLog(@"[Main] Successfully associated with parse!");
+    
+}
+
 
 - (void)viewWillLayoutSubviews {
     

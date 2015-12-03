@@ -24,7 +24,6 @@
     
     // No valid location data yet.
     lastTimestamp = -1;
-    [self initializeWithParse];
     
     return self;
 }
@@ -44,14 +43,44 @@
 
 - (void)initializeWithParse {
     FBSDKAccessToken *accessToken = [FBSDKAccessToken currentAccessToken];
-    
     PFQuery *query = [PFUser query];
     [query whereKey:@"facebookId" equalTo:[accessToken userID]];
     [query getFirstObjectInBackgroundWithBlock:^(PFObject * _Nullable object, NSError * _Nullable error) {
         if (object != nil) {
+            NSLog(@"[Friend] Matched friend with parse.");
             [self setUser:(PFUser *)object];
+        } else {
+            NSLog(@"[Friend] Couldn't match friend with parse.");
+            /* NSLog(@"Creating user... %@ %@", [self name], [self fbid]);
+            PFUser *newuser = [PFUser user];
+            [newuser setObject:[self name] forKey:@"username"];
+            [newuser setObject:[self getRandomPassword] forKey:@"password"];
+            [newuser setObject:[self fbid] forKey:@"facebookId"];
+            [newuser signUpInBackgroundWithBlock:^(BOOL succeeded, NSError * _Nullable error) {
+                if (succeeded) {
+                    NSLog(@"Successfully saved user %@!", [self name]);
+                } else {
+                    NSLog(@"Failed to save %@ - reason: %@", [self name], [error localizedDescription]);
+                }
+            }]; */
         }
     }];
+}
+
+- (NSString *)getRandomPassword {
+    int length = 20;
+    
+    NSString *alphabet  = @"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXZY0123456789!@#$%^&*";
+
+    NSMutableString *randomString = [NSMutableString stringWithCapacity: length];
+    
+    for (int i=0; i< length; i++) {
+        [randomString appendFormat: @"%C", [alphabet characterAtIndex: arc4random_uniform([alphabet length])]];
+    }
+    
+    NSLog(@"Generated random password: %@", randomString);
+    
+    return [NSString stringWithString:randomString];
 }
 
 /* Returns a CGPoint (lon, lat) of the last known location of this friend. */
@@ -72,8 +101,10 @@
     lastTimestamp = time(NULL);
 }
 
-- (void)setUser:(PFUser *)_user {
-    self.user = _user;
+- (void)setUser:(PFUser *)u {
+    [u setObject:_name forKey:@"username"];
+    [u setObject:_fbId forKey:@"facebookId"];
+    [u saveEventually];
 }
 
 @end
