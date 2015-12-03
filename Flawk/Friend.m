@@ -7,10 +7,13 @@
 //
 
 #import "Friend.h"
+#import <FBSDKCoreKit/FBSDKCoreKit.h>
+#import <ParseFacebookUtilsV4/ParseFacebookUtilsV4.h>
+#import <Parse/Parse.h>
 
 @implementation Friend
 
-@synthesize name=_name, fbid=_fbId;
+@synthesize name=_name, fbid=_fbId, user;
 
 - (id)initWithName:(NSString *)fullName fbId:(NSString *)fbId {
     
@@ -40,10 +43,15 @@
 }
 
 - (void)initializeWithParse {
+    FBSDKAccessToken *accessToken = [FBSDKAccessToken currentAccessToken];
     
-    
-    
-    
+    PFQuery *query = [PFUser query];
+    [query whereKey:@"facebookId" equalTo:[accessToken userID]];
+    [query getFirstObjectInBackgroundWithBlock:^(PFObject * _Nullable object, NSError * _Nullable error) {
+        if (object != nil) {
+            [self setUser:(PFUser *)object];
+        }
+    }];
 }
 
 /* Returns a CGPoint (lon, lat) of the last known location of this friend. */
@@ -62,6 +70,10 @@
     self.lastKnownLocation = place;
     self.lastKnownArea = area;
     lastTimestamp = time(NULL);
+}
+
+- (void)setUser:(PFUser *)_user {
+    self.user = _user;
 }
 
 @end
