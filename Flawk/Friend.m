@@ -21,6 +21,7 @@
     
     // No valid location data yet.
     lastTimestamp = -1;
+    [self initializeWithParse];
     
     return self;
 }
@@ -33,8 +34,16 @@
     
     // No valid location data yet.
     lastTimestamp = -1;
+    [self initializeWithParse];
     
     return self;
+}
+
+- (void)initializeWithParse {
+    
+    
+    
+    
 }
 
 /* Returns a CGPoint (lon, lat) of the last known location of this friend. */
@@ -54,8 +63,5 @@
     self.lastKnownArea = area;
     lastTimestamp = time(NULL);
 }
-    
-    
-    
-    
+
 @end

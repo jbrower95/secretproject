@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		737A5B1586B78B2937680178 /* libPods-Flawk.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 75681DBF9636BCEEC48651FD /* libPods-Flawk.a */; };
 		D0B6A68D1C0FB2EB007200E5 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = D0B6A68C1C0FB2EB007200E5 /* main.m */; };
 		D0B6A6901C0FB2EB007200E5 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = D0B6A68F1C0FB2EB007200E5 /* AppDelegate.m */; };
 		D0B6A6931C0FB2EB007200E5 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D0B6A6921C0FB2EB007200E5 /* ViewController.m */; };
@@ -19,8 +20,6 @@
 		D0B6A6C31C0FC147007200E5 /* Friend.m in Sources */ = {isa = PBXBuildFile; fileRef = D0B6A6C21C0FC147007200E5 /* Friend.m */; };
 		D0B6A6C61C0FC292007200E5 /* API.m in Sources */ = {isa = PBXBuildFile; fileRef = D0B6A6C51C0FC292007200E5 /* API.m */; };
 		D0B6A6CA1C0FC741007200E5 /* FriendCellTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D0B6A6C91C0FC741007200E5 /* FriendCellTableViewCell.m */; };
-		D0B6A6D81C0FE64D007200E5 /* FBSDKCoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0B6A6D61C0FE64D007200E5 /* FBSDKCoreKit.framework */; };
-		D0B6A6D91C0FE64D007200E5 /* FBSDKLoginKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0B6A6D71C0FE64D007200E5 /* FBSDKLoginKit.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -41,6 +40,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		75681DBF9636BCEEC48651FD /* libPods-Flawk.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Flawk.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		93BEB3F367D15B90075A28B0 /* Pods-Flawk.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Flawk.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Flawk/Pods-Flawk.debug.xcconfig"; sourceTree = "<group>"; };
 		D0B6A6881C0FB2EB007200E5 /* Flawk.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Flawk.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D0B6A68C1C0FB2EB007200E5 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		D0B6A68E1C0FB2EB007200E5 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -64,8 +65,7 @@
 		D0B6A6C51C0FC292007200E5 /* API.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = API.m; sourceTree = "<group>"; };
 		D0B6A6C81C0FC741007200E5 /* FriendCellTableViewCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FriendCellTableViewCell.h; sourceTree = "<group>"; };
 		D0B6A6C91C0FC741007200E5 /* FriendCellTableViewCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FriendCellTableViewCell.m; sourceTree = "<group>"; };
-		D0B6A6D61C0FE64D007200E5 /* FBSDKCoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FBSDKCoreKit.framework; path = ../../Documents/iosframework/FBSDKCoreKit.framework; sourceTree = "<group>"; };
-		D0B6A6D71C0FE64D007200E5 /* FBSDKLoginKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FBSDKLoginKit.framework; path = ../../Documents/iosframework/FBSDKLoginKit.framework; sourceTree = "<group>"; };
+		DA3C63D85F8E2323941624F4 /* Pods-Flawk.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Flawk.release.xcconfig"; path = "Pods/Target Support Files/Pods-Flawk/Pods-Flawk.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -74,8 +74,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D0B6A6BF1C0FB384007200E5 /* MapKit.framework in Frameworks */,
-				D0B6A6D81C0FE64D007200E5 /* FBSDKCoreKit.framework in Frameworks */,
-				D0B6A6D91C0FE64D007200E5 /* FBSDKLoginKit.framework in Frameworks */,
+				737A5B1586B78B2937680178 /* libPods-Flawk.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -96,15 +95,33 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		286DCAAE3C39B623381E7939 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				75681DBF9636BCEEC48651FD /* libPods-Flawk.a */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		ADA9299806234AABA631101C /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				93BEB3F367D15B90075A28B0 /* Pods-Flawk.debug.xcconfig */,
+				DA3C63D85F8E2323941624F4 /* Pods-Flawk.release.xcconfig */,
+			);
+			name = Pods;
+			sourceTree = "<group>";
+		};
 		D0B6A67F1C0FB2EB007200E5 = {
 			isa = PBXGroup;
 			children = (
-				D0B6A6D51C0FE646007200E5 /* Frameworks */,
 				D0B6A6BE1C0FB384007200E5 /* MapKit.framework */,
 				D0B6A68A1C0FB2EB007200E5 /* Flawk */,
 				D0B6A6A41C0FB2EB007200E5 /* FlawkTests */,
 				D0B6A6AF1C0FB2EB007200E5 /* FlawkUITests */,
 				D0B6A6891C0FB2EB007200E5 /* Products */,
+				ADA9299806234AABA631101C /* Pods */,
+				286DCAAE3C39B623381E7939 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -182,15 +199,6 @@
 			name = View;
 			sourceTree = "<group>";
 		};
-		D0B6A6D51C0FE646007200E5 /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-				D0B6A6D61C0FE64D007200E5 /* FBSDKCoreKit.framework */,
-				D0B6A6D71C0FE64D007200E5 /* FBSDKLoginKit.framework */,
-			);
-			name = Frameworks;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -198,9 +206,12 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = D0B6A6B51C0FB2EB007200E5 /* Build configuration list for PBXNativeTarget "Flawk" */;
 			buildPhases = (
+				F98C4F6EDB427871029B2CF9 /* Check Pods Manifest.lock */,
 				D0B6A6841C0FB2EB007200E5 /* Sources */,
 				D0B6A6851C0FB2EB007200E5 /* Frameworks */,
 				D0B6A6861C0FB2EB007200E5 /* Resources */,
+				5085380386A9CF765FC1AA25 /* Embed Pods Frameworks */,
+				E3F739BF4C58C10729AD18A0 /* Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -316,6 +327,54 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		5085380386A9CF765FC1AA25 /* Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Embed Pods Frameworks";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Flawk/Pods-Flawk-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		E3F739BF4C58C10729AD18A0 /* Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Copy Pods Resources";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Flawk/Pods-Flawk-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		F98C4F6EDB427871029B2CF9 /* Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Check Pods Manifest.lock";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [[ $? != 0 ]] ; then\n    cat << EOM\nerror: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\nEOM\n    exit 1\nfi\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		D0B6A6841C0FB2EB007200E5 /* Sources */ = {
@@ -464,6 +523,7 @@
 		};
 		D0B6A6B61C0FB2EB007200E5 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 93BEB3F367D15B90075A28B0 /* Pods-Flawk.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
@@ -479,6 +539,7 @@
 		};
 		D0B6A6B71C0FB2EB007200E5 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = DA3C63D85F8E2323941624F4 /* Pods-Flawk.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
@@ -559,6 +620,7 @@
 				D0B6A6B71C0FB2EB007200E5 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		D0B6A6B81C0FB2EB007200E5 /* Build configuration list for PBXNativeTarget "FlawkTests" */ = {
 			isa = XCConfigurationList;
@@ -567,6 +629,7 @@
 				D0B6A6BA1C0FB2EB007200E5 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		D0B6A6BB1C0FB2EB007200E5 /* Build configuration list for PBXNativeTarget "FlawkUITests" */ = {
 			isa = XCConfigurationList;
@@ -575,6 +638,7 @@
 				D0B6A6BD1C0FB2EB007200E5 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

@@ -86,7 +86,6 @@
 }
 
 - (void)refreshSuccess:(id)sender {
-    NSLog(@"Login is officially good.");
     NSLog(@"Verifying Facebook permissions...");
     
     NSSet *declinedPermissions = [[FBSDKAccessToken currentAccessToken] declinedPermissions];
@@ -105,14 +104,11 @@
     [request startWithCompletionHandler:^(FBSDKGraphRequestConnection *connection, id result, NSError *error) {
         if (error == nil) {
             // No problemo.
-            NSLog(@"%@", result);
-            
             NSDictionary *parsedResult = (NSDictionary *)result;
             
             NSArray *newFriends = [parsedResult objectForKey:@"data"];
             
             if (newFriends != nil) {
-                NSLog(@"Downloaded friends from facebook: %lu.", [friends count]);
                 [[API sharedAPI] parseFriends:newFriends];
             } else {
                 NSLog(@"No friends from Facebook.");
@@ -128,9 +124,6 @@
             NSLog(@"%@", [error localizedDescription]);
         }
     }];
-    
-    
-    
 }
 
 - (void)viewWillLayoutSubviews {

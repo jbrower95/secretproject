@@ -8,6 +8,7 @@
 
 #import "AppDelegate.h"
 #import <FBSDKCoreKit/FBSDKCoreKit.h>
+#import <Parse/Parse.h>
 
 @interface AppDelegate ()
 
@@ -20,6 +21,8 @@
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     [[FBSDKApplicationDelegate sharedInstance] application:application
                              didFinishLaunchingWithOptions:launchOptions];
+    [Parse setApplicationId:@"gWEenk0TPTnbU18Ug0SpyAXR2Omh5Jk57wvAgI8M"
+                  clientKey:@"W7vgDEUea8r184Ptyt9vbx7C9wfD5WXq7M1Rmo0z"];
     return YES;
 }
 
