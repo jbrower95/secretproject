@@ -25,7 +25,17 @@
     return self;
 }
 
-
+- (id)initWithFacebookDict:(NSDictionary *)dict {
+    if (self = [super init]) {
+        _name = [dict objectForKey:@"name"];
+        _fbId = [dict objectForKey:@"id"];
+    }
+    
+    // No valid location data yet.
+    lastTimestamp = -1;
+    
+    return self;
+}
 
 /* Returns a CGPoint (lon, lat) of the last known location of this friend. */
 - (CGPoint)getLastLocation {

@@ -34,6 +34,7 @@
 }
 
 - (id)initWithName:(NSString *)name fbId:(NSString *)fbId;
+- (id)initWithFacebookDict:(NSDictionary *)dict;
 
 @property (nonatomic, retain) NSString *name;
 @property (nonatomic, retain) NSString *fbid;

@@ -15,8 +15,20 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
 
 @implementation API
 
+@synthesize friends;
+
+
+- (id)init {
+    if (self = [super init]) {
+        friends = [[NSMutableArray alloc] init];
+    }
+    
+    return self;
+}
+
+
 /* Gets all friends from Facebook. */
-+ (void)getAllFriendsWithBlock:(void(^)(NSArray *friends, NSError *error))block {
+- (void)getAllFriendsWithBlock:(void(^)(NSArray *friends, NSError *error))block {
     
     NSMutableArray *friends = [[NSMutableArray alloc] init];
     
@@ -38,12 +50,12 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
     }
 }
 
-+ (BOOL)isLoggedIn {
+- (BOOL)isLoggedIn {
     return [FBSDKAccessToken currentAccessToken] != nil;
 }
 
 /* Checks into a place. */
-+ (void)checkinToPlace:(NSString *)place atLongitude:(float)longitude atLatitude:(float)latitude withBlock:(void(^)(NSError *error))block {
+- (void)checkinToPlace:(NSString *)place atLongitude:(float)longitude atLatitude:(float)latitude withBlock:(void(^)(NSError *error))block {
     
     // TODO: Send a request to the server to share your location
     if (block != nil) {
@@ -53,14 +65,14 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
 
 
 /* Sends your location to another user. */
-+ (void)giveLocationToUserWithId:(NSString *)user withBlock:(void(^)(NSError *error))block {
+- (void)giveLocationToUserWithId:(NSString *)user withBlock:(void(^)(NSError *error))block {
     if (block != nil) {
         block(nil);
     }
 }
 
 
-+ (void)refreshFacebookLogin {
+- (void)refreshFacebookLogin {
     [FBSDKAccessToken refreshCurrentAccessToken:^(FBSDKGraphRequestConnection *connection, id result, NSError *error) {
         
         if (error != nil) {
@@ -75,5 +87,24 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
     }];
 }
 
+- (void)parseFriends:(NSArray *)f {
+    [friends removeAllObjects];
+    for (NSDictionary *dict in f) {
+        Friend *friend = [[Friend alloc] initWithFacebookDict:dict];
+        [friends addObject:friend];
+    }
+    
+    NSLog(@"Parsed %lu friends.", [f count]);
+}
+
+static API *sharedAPI;
+
++ (id)sharedAPI {
+    if (sharedAPI == nil) {
+        sharedAPI = [[API alloc] init];
+    }
+    
+    return sharedAPI;
+}
 
 @end

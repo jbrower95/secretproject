@@ -36,7 +36,7 @@
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Add Friends" style:UIBarButtonItemStylePlain target:self action:@selector(addFriends:)];
     
     /* Check if we're logged in */
-    [API getAllFriendsWithBlock:^(NSArray *receivedFriends, NSError *error) {
+    [[API sharedAPI] getAllFriendsWithBlock:^(NSArray *receivedFriends, NSError *error) {
         if (error != nil) {
             NSLog(@"%@", [error localizedDescription]);
         }
@@ -51,12 +51,12 @@
         
     }];
     
-    if (![API isLoggedIn]) {
+    if (![[API sharedAPI] isLoggedIn]) {
         NSLog(@"Attempting to log in user...");
         [self login];
     } else {
         NSLog(@"User is logged in!");
-        [API refreshFacebookLogin];
+        [[API sharedAPI] refreshFacebookLogin];
     }
     
     [super viewDidLoad];
@@ -109,10 +109,11 @@
             
             NSDictionary *parsedResult = (NSDictionary *)result;
             
-            NSArray *friends = [parsedResult objectForKey:@"data"];
+            NSArray *newFriends = [parsedResult objectForKey:@"data"];
             
-            if (friends != nil) {
-                NSLog(@"Downloaded friends from facebook: %d.", [friends count]);
+            if (newFriends != nil) {
+                NSLog(@"Downloaded friends from facebook: %lu.", [friends count]);
+                [[API sharedAPI] parseFriends:newFriends];
             } else {
                 NSLog(@"No friends from Facebook.");
             }
