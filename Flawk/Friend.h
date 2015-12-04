@@ -10,7 +10,7 @@
 #import <UIKit/UIKit.h>
 #import <Parse/Parse.h>
 
-@interface Friend : NSObject {
+@interface Friend : NSObject<NSCoding> {
     
     /* The full name of this friend. */
     NSString *name;

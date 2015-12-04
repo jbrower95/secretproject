@@ -78,27 +78,60 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
     [self.this_user setLastLocation:CGPointMake(lon, lat) place:location area:area];
 }
 
-/* */
+/* Sends a push indicating the location to the other user */
 - (void)shareLocationWithUser:(Friend *)user {
     
     CGFloat lon = [self.this_user lastLongitude];
     CGFloat lat = [self.this_user lastLatitude];
-    
-    NSString *message = [NSString stringWithFormat:@"%@ shared their location!", [self.this_user name]];
     
     PFPush *push = [PFPush push];
     
     PFQuery *query = [PFInstallation query];
     [query whereKey:@"facebookId" equalTo:[user fbid]];
     
-    NSDictionary *data = @{@"request" : @"acknowledge", @"location" : [self.this_user lastKnownLocation], @"area" : [self.this_user lastKnownArea], @"lon" : [NSString stringWithFormat:@"%f", lon], @"lat" : [NSString stringWithFormat:@"%f", lat], @"from" : self.this_user.fbid, @"alert" : message};
+    NSDictionary *data = @{@"request" : @"acknowledge", @"location" : [self.this_user lastKnownLocation], @"area" : [self.this_user lastKnownArea], @"lon" : [NSString stringWithFormat:@"%f", lon], @"lat" : [NSString stringWithFormat:@"%f", lat], @"from" : self.this_user.fbid};
     
     [push setQuery:query];
     [push setData:data];
     
     // Send push.
-    [push sendPushInBackground];
+    [push sendPushInBackgroundWithBlock:^(BOOL succeeded, NSError * _Nullable error) {
+        if (succeeded) {
+            NSLog(@"[API] Successfully shared location!");
+        } else {
+            NSLog(@"[API] Failed to share location: %@", [error localizedFailureReason]);
+        }
+    }];
 }
+
+
+/* Sends a push indicating the location to the other user */
+- (void)shareLocationWithUser:(Friend *)user completion:(void (^)(void))completionHandler {
+    
+    CGFloat lon = [self.this_user lastLongitude];
+    CGFloat lat = [self.this_user lastLatitude];
+    
+    PFPush *push = [PFPush push];
+    
+    PFQuery *query = [PFInstallation query];
+    [query whereKey:@"facebookId" equalTo:[user fbid]];
+    
+    NSDictionary *data = @{@"request" : @"acknowledge", @"location" : [self.this_user lastKnownLocation], @"area" : [self.this_user lastKnownArea], @"lon" : [NSString stringWithFormat:@"%f", lon], @"lat" : [NSString stringWithFormat:@"%f", lat], @"from" : self.this_user.fbid};
+    
+    [push setQuery:query];
+    [push setData:data];
+    
+    // Send push.
+    [push sendPushInBackgroundWithBlock:^(BOOL succeeded, NSError * _Nullable error) {
+        if (succeeded) {
+            NSLog(@"[API] Successfully shared location!");
+        } else {
+            NSLog(@"[API] Failed to share location: %@", [error localizedFailureReason]);
+        }
+        completionHandler();
+    }];
+}
+
 
 - (void)refreshFacebookLogin {
     [FBSDKAccessToken refreshCurrentAccessToken:^(FBSDKGraphRequestConnection *connection, id result, NSError *error) {
@@ -181,7 +214,7 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
     [push setQuery:query];
     
     NSString *message = [NSString stringWithFormat:@"%@: where you @?", [self.this_user name]];
-    [push setData:@{@"request" : @"location", @"sender" : [self.this_user fbid], @"alert" : message, @"category" : @"REQUEST_LOCATION_CATEGORY"}];
+    [push setData:@{@"request" : @"location", @"from" : [self.this_user fbid], @"alert" : message, @"category" : @"REQUEST_LOCATION_CATEGORY"}];
     [push sendPushInBackgroundWithBlock:^(BOOL succeeded, NSError * _Nullable error) {
         if (!succeeded) {
             NSLog(@"[API] Error: Didn't succeed sending push - %@", [error localizedDescription]);
@@ -206,8 +239,6 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
     if ([@"acknowledge" isEqualToString:[push objectForKey:@"request"]]) {
         [[NSNotificationCenter defaultCenter] postNotificationName:@"AcknowledgeRequest" object:nil userInfo:push];
     }
-    
-    
 }
 
 - (Friend *)currentUser {
@@ -222,7 +253,17 @@ static API *sharedAPI;
         sharedAPI = [[API alloc] init];
     }
     
+    NSData *encodedObject = [[NSUserDefaults standardUserDefaults] objectForKey:@"current_user"];
+    if (encodedObject != nil) {
+        sharedAPI.this_user = (Friend *)[NSKeyedUnarchiver unarchiveObjectWithData:encodedObject];
+    }
+    
     return sharedAPI;
+}
+
+- (void)dealloc {
+    [[NSUserDefaults standardUserDefaults] setObject:[NSKeyedArchiver archivedDataWithRootObject:self.this_user] forKey:@"current_user"];
+    [[NSUserDefaults standardUserDefaults] synchronize];
 }
 
 - (void)locationManager:(CLLocationManager *)manager

@@ -28,6 +28,29 @@
     return self;
 }
 
+- (void)encodeWithCoder:(NSCoder *)encoder {
+    //Encode properties, other class variables, etc
+    [encoder encodeObject:_name forKey:@"name"];
+    [encoder encodeObject:_fbId forKey:@"fbId"];
+    [encoder encodeFloat:lastLatitude forKey:@"lat"];
+    [encoder encodeFloat:lastlongitude forKey:@"lon"];
+    [encoder encodeObject:lastKnownArea forKey:@"area"];
+    [encoder encodeObject:lastKnownLocation forKey:@"location"];
+}
+
+- (id)initWithCoder:(NSCoder *)decoder {
+    if((self = [super init])) {
+        //decode properties, other class vars
+        _name = [decoder decodeObjectForKey:@"name"];
+        _fbId = [decoder decodeObjectForKey:@"fbId"];
+        lastLatitude = [decoder decodeFloatForKey:@"lat"];
+        lastlongitude = [decoder decodeFloatForKey:@"lon"];
+        lastKnownArea = [decoder decodeObjectForKey:@"area"];
+        lastKnownLocation = [decoder decodeObjectForKey:@"location"];
+    }
+    return self;
+}
+
 - (id)initWithFacebookDict:(NSDictionary *)dict {
     if (self = [super init]) {
         _name = [dict objectForKey:@"name"];
@@ -76,6 +99,22 @@
 
 - (BOOL)locationKnown {
     return lastTimestamp != -1;
+}
+
+- (NSString *)lastKnownArea {
+    if (lastKnownArea == nil) {
+        return @"";
+    } else {
+        return lastKnownArea;
+    }
+}
+
+- (NSString *)lastKnownLocation {
+    if (lastKnownLocation == nil) {
+        return @"";
+    } else {
+        return lastKnownLocation;
+    }
 }
 
 /* Sets the last observed location of this friend. Timestamp is inferred from system time. */

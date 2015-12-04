@@ -102,6 +102,29 @@
 }
 
 
+- (void)application:(UIApplication *)application
+handleActionWithIdentifier:(NSString *)identifier
+forRemoteNotification:(NSDictionary *)userInfo
+  completionHandler:(void (^)(void))completionHandler
+{
+    
+    if (identifier != nil) {
+        
+        if ([identifier isEqualToString:@"replyAction"]) {
+            NSLog(@"do something else");
+            // unimplemented
+            
+        } else if ([identifier isEqualToString:@"sendLocationAction"]) {
+            NSLog(@"%@", userInfo);
+            
+            [[API sharedAPI] shareLocationWithUser:[[Friend alloc] initWithName:nil fbId:[userInfo objectForKey:@"from"]] completion:completionHandler];
+        }
+    } else {
+        completionHandler();
+    }
+}
+
+
 - (BOOL)application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation {
     return [[FBSDKApplicationDelegate sharedInstance] application:application
                                                           openURL:url
