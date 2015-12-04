@@ -201,8 +201,6 @@
 }
 
 - (void)refreshSuccess:(NSNotification *)notification {
-    NSLog(@"Verifying Facebook permissions...");
-    
     NSSet *declinedPermissions = [[FBSDKAccessToken currentAccessToken] declinedPermissions];
     
     if ([declinedPermissions count] > 0) {

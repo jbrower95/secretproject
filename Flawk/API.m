@@ -84,7 +84,7 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
     CGFloat lon = [self.this_user lastLongitude];
     CGFloat lat = [self.this_user lastLatitude];
     
-    NSString *message = [NSString stringWithFormat:@"%@ shared their location!", [user name]];
+    NSString *message = [NSString stringWithFormat:@"%@ shared their location!", [self.this_user name]];
     
     PFPush *push = [PFPush push];
     
@@ -235,8 +235,10 @@ static API *sharedAPI;
 
 -(void)locationManager:(CLLocationManager *)manager didFailWithError:(NSError *)error{
     UIAlertView *errorAlert = [[UIAlertView alloc]initWithTitle:@"Error" message:@"Please enable locations -- really, what did you expect this app to do without location services?" delegate:nil cancelButtonTitle:@"Sure, I guess." otherButtonTitles: nil];
+    
     [errorAlert show];
     NSLog(@"Error: %@",error.description);
+    
 }
 
 @end
