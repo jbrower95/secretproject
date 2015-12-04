@@ -18,6 +18,9 @@
 }
 
 - (IBAction)buttonPressed:(id)sender {
+    
+    [whereAtButton setTitle:@"Pinged!" forState:UIControlStateNormal];
+    
     [[NSNotificationCenter defaultCenter] postNotificationName:@"WhereAtRequest" object:nil userInfo:@{@"username" : [self.model name], @"facebookId" : [self.model fbid]}];
 }
 

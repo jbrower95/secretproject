@@ -349,8 +349,13 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     const NSString *segue = @"FriendLocationSegue";
-    [self performSegueWithIdentifier:segue sender:self];
-    NSLog(@"Woahhhh!");
+    
+    Friend *f = [self.friends objectAtIndex:indexPath.row];
+    
+    if ([f locationKnown]) {
+        [self performSegueWithIdentifier:segue sender:self];
+        NSLog(@"Woahhhh!");
+    }
 }
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {

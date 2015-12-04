@@ -86,13 +86,15 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
     
     NSString *message = [NSString stringWithFormat:@"%@ shared their location!", [user name]];
     
+    NSDictionary *alert = @{@"title" : @"Flawk Request", @"message" : message};
+    
     PFPush *push = [PFPush push];
     
     PFQuery *query = [PFInstallation query];
     [query whereKey:@"facebookId" equalTo:[user fbid]];
     
     [push setQuery:query];
-    [push setData:@{@"request" : @"acknowledge", @"location" : [self.this_user lastKnownLocation], @"area" : [self.this_user lastKnownArea], @"lon" : [NSString stringWithFormat:@"%f", lon], @"lat" : [NSString stringWithFormat:@"%f", lat], @"from" : self.this_user.fbid, @"alert" : message}];
+    [push setData:@{@"request" : @"acknowledge", @"location" : [self.this_user lastKnownLocation], @"area" : [self.this_user lastKnownArea], @"lon" : [NSString stringWithFormat:@"%f", lon], @"lat" : [NSString stringWithFormat:@"%f", lat], @"from" : self.this_user.fbid, @"alert" : alert}];
     
     // Send push.
     [push sendPushInBackground];
