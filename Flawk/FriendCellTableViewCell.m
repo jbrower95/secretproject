@@ -21,7 +21,14 @@
     
     [whereAtButton setTitle:@"Pinged!" forState:UIControlStateNormal];
     
+    [self performSelector:@selector(resetButton:) withObject:nil afterDelay:8];
+    
     [[NSNotificationCenter defaultCenter] postNotificationName:@"WhereAtRequest" object:nil userInfo:@{@"username" : [self.model name], @"facebookId" : [self.model fbid]}];
+}
+
+
+- (void)resetButton:(id)sender {
+    [whereAtButton setTitle:@"Where at?" forState:UIControlStateNormal];
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated {

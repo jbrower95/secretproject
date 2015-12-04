@@ -52,27 +52,13 @@
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Add Friends" style:UIBarButtonItemStylePlain target:self action:@selector(addFriends:)];
     
     /* Check if we're logged in */
-    [[API sharedAPI] getAllFriendsWithBlock:^(NSArray *receivedFriends, NSError *error) {
-        if (error != nil) {
-            NSLog(@"%@", [error localizedDescription]);
-        }
-        
-        NSLog(@"Got %lu friends.", (unsigned long)[receivedFriends count]);
-        
-        self.friends = receivedFriends;
-        
-        dispatch_async(dispatch_get_main_queue(), ^() {
-            [tableView reloadData];
-        });
-        
-    }];
-    
     if (![[API sharedAPI] isLoggedIn]) {
         NSLog(@"Attempting to log in user...");
         [self login];
     } else {
         NSLog(@"User is logged in!");
         [[API sharedAPI] refreshFacebookLogin];
+        [self loadAllFriends];
     }
     
     [self startStandardUpdates];
@@ -229,6 +215,25 @@
     /* Make yourself a parse account if you don't already have one */
     [[API sharedAPI] initParse];
     
+    [self loadAllFriends];
+    
+}
+
+- (void)loadAllFriends {
+    [[API sharedAPI] getAllFriendsWithBlock:^(NSArray *receivedFriends, NSError *error) {
+        if (error != nil) {
+            NSLog(@"%@", [error localizedDescription]);
+        }
+        
+        NSLog(@"Got %lu friends.", (unsigned long)[receivedFriends count]);
+        
+        self.friends = receivedFriends;
+        
+        dispatch_async(dispatch_get_main_queue(), ^() {
+            [tableView reloadData];
+        });
+        
+    }];
 }
 
 - (void)parseFailure:(id)sender {

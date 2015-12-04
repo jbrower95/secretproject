@@ -86,15 +86,15 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
     
     NSString *message = [NSString stringWithFormat:@"%@ shared their location!", [user name]];
     
-    NSDictionary *alert = @{@"title" : @"Flawk Request", @"message" : message};
-    
     PFPush *push = [PFPush push];
     
     PFQuery *query = [PFInstallation query];
     [query whereKey:@"facebookId" equalTo:[user fbid]];
     
+    NSDictionary *data = @{@"request" : @"acknowledge", @"location" : [self.this_user lastKnownLocation], @"area" : [self.this_user lastKnownArea], @"lon" : [NSString stringWithFormat:@"%f", lon], @"lat" : [NSString stringWithFormat:@"%f", lat], @"from" : self.this_user.fbid, @"alert" : message};
+    
     [push setQuery:query];
-    [push setData:@{@"request" : @"acknowledge", @"location" : [self.this_user lastKnownLocation], @"area" : [self.this_user lastKnownArea], @"lon" : [NSString stringWithFormat:@"%f", lon], @"lat" : [NSString stringWithFormat:@"%f", lat], @"from" : self.this_user.fbid, @"alert" : alert}];
+    [push setData:data];
     
     // Send push.
     [push sendPushInBackground];
@@ -180,8 +180,8 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
     PFPush *push = [PFPush push];
     [push setQuery:query];
     
-    NSString *message = [NSString stringWithFormat:@"%@ wants to where you're at!", [self.this_user name]];
-    [push setData:@{@"request" : @"location", @"sender" : [self.this_user fbid], @"alert" : message}];
+    NSString *message = [NSString stringWithFormat:@"%@: where you @?", [self.this_user name]];
+    [push setData:@{@"request" : @"location", @"sender" : [self.this_user fbid], @"alert" : message, @"category" : @"REQUEST_LOCATION_CATEGORY"}];
     [push sendPushInBackgroundWithBlock:^(BOOL succeeded, NSError * _Nullable error) {
         if (!succeeded) {
             NSLog(@"[API] Error: Didn't succeed sending push - %@", [error localizedDescription]);
@@ -228,7 +228,6 @@ static API *sharedAPI;
 - (void)locationManager:(CLLocationManager *)manager
      didUpdateLocations:(NSArray<CLLocation *> *)locations {
     CLLocation *first = [locations objectAtIndex:0];
-    NSLog(@"[API] Updating location: %f, %f" ,[first coordinate].latitude, [first coordinate].longitude);
     
     [self.this_user setLastLatitude:[first coordinate].latitude];
     [self.this_user setLastLongitude:[first coordinate].longitude];

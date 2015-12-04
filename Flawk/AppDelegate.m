@@ -24,20 +24,73 @@
     [Parse setApplicationId:@"gWEenk0TPTnbU18Ug0SpyAXR2Omh5Jk57wvAgI8M"
                   clientKey:@"W7vgDEUea8r184Ptyt9vbx7C9wfD5WXq7M1Rmo0z"];
     [PFFacebookUtils initializeFacebookWithApplicationLaunchOptions:launchOptions];
-    
-    UIUserNotificationType userNotificationTypes = (UIUserNotificationTypeAlert | UIUserNotificationTypeBadge | UIUserNotificationTypeSound);
-    UIUserNotificationSettings *settings = [UIUserNotificationSettings settingsForTypes:userNotificationTypes  categories:nil];
-    [application registerUserNotificationSettings:settings];
-    [application registerForRemoteNotifications];
-    
     PFInstallation *installation = [PFInstallation currentInstallation];
-    
     [installation saveEventually];
     
     
+    UIMutableUserNotificationAction *sendLocationAction =
+    [[UIMutableUserNotificationAction alloc] init];
+
+    // Define an ID string to be passed back to your app when you handle the action
+    sendLocationAction.identifier = @"sendLocationAction";
+    
+    // Localized string displayed in the action button
+    sendLocationAction.title = @"Share";
+    
+    // If you need to show UI, choose foreground
+    sendLocationAction.activationMode = UIUserNotificationActivationModeBackground;
+    
+    // Destructive actions display in red
+    sendLocationAction.destructive = NO;
+    
+    // Set whether the action requires the user to authenticate
+    sendLocationAction.authenticationRequired = NO;
+    
+    
+    UIMutableUserNotificationAction *replyAction =
+    [[UIMutableUserNotificationAction alloc] init];
+    
+    // Define an ID string to be passed back to your app when you handle the action
+    replyAction.identifier = @"replyAction";
+    
+    // Localized string displayed in the action button
+    replyAction.title = @"Reply";
+    
+    // If you need to show UI, choose foreground
+    replyAction.activationMode = UIUserNotificationActivationModeBackground;
+    
+    // Destructive actions display in red
+    replyAction.destructive = NO;
+    
+    // Set whether the action requires the user to authenticate
+    replyAction.authenticationRequired = NO;
+    
+    // Make this take text input.
+    replyAction.behavior = UIUserNotificationActionBehaviorTextInput;
     
     
     
+    UIMutableUserNotificationCategory *inviteCategory =
+    [[UIMutableUserNotificationCategory alloc] init];
+    
+    // Identifier to include in your push payload and local notification
+    inviteCategory.identifier = @"REQUEST_LOCATION_CATEGORY";
+    
+    // Add the actions to the category and set the action context
+    [inviteCategory setActions:@[sendLocationAction, replyAction]
+                    forContext:UIUserNotificationActionContextDefault];
+    
+    // Set the actions to present in a minimal context
+    [inviteCategory setActions:@[sendLocationAction, replyAction]
+                    forContext:UIUserNotificationActionContextMinimal];
+
+    
+    NSSet *categories = [NSSet setWithObjects:inviteCategory, nil];
+                         
+    UIUserNotificationSettings *notificationSettings = [UIUserNotificationSettings settingsForTypes:UIUserNotificationTypeAlert categories:categories];
+                         
+    [application registerUserNotificationSettings:notificationSettings];
+    [application registerForRemoteNotifications];
     return YES;
 }
 
@@ -82,8 +135,6 @@
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo {
     
     NSLog(@"Received notification: %@", userInfo);
-    
-    //[PFPush handlePush:userInfo];
     [[API sharedAPI] handlePush:userInfo];
 }
 
