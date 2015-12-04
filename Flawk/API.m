@@ -74,14 +74,29 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
     }
 }
 
-
-/* Sends your location to another user. */
-- (void)giveLocationToUserWithId:(NSString *)user withBlock:(void(^)(NSError *error))block {
-    if (block != nil) {
-        block(nil);
-    }
+- (void)updateLocation:(NSString *)location area:(NSString *)area lon:(CGFloat)lon lat:(CGFloat)lat {
+    [self.this_user setLastLocation:CGPointMake(lon, lat) place:location area:area];
 }
 
+/* */
+- (void)shareLocationWithUser:(Friend *)user {
+    
+    CGFloat lon = [self.this_user lastLongitude];
+    CGFloat lat = [self.this_user lastLatitude];
+    
+    NSString *message = [NSString stringWithFormat:@"%@ shared their location!", [user name]];
+    
+    PFPush *push = [PFPush push];
+    
+    PFQuery *query = [PFInstallation query];
+    [query whereKey:@"facebookId" equalTo:[user fbid]];
+    
+    [push setQuery:query];
+    [push setData:@{@"request" : @"acknowledge", @"location" : [self.this_user lastKnownLocation], @"area" : [self.this_user lastKnownArea], @"lon" : [NSString stringWithFormat:@"%f", lon], @"lat" : [NSString stringWithFormat:@"%f", lat], @"from" : self.this_user.fbid, @"alert" : message}];
+    
+    // Send push.
+    [push sendPushInBackground];
+}
 
 - (void)refreshFacebookLogin {
     [FBSDKAccessToken refreshCurrentAccessToken:^(FBSDKGraphRequestConnection *connection, id result, NSError *error) {
@@ -91,8 +106,27 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
             [[NSNotificationCenter defaultCenter] postNotificationName:API_REFRESH_FAILED_EVENT object:self];
         } else {
             // Success -- tell no one anything.
-            NSLog(@"[API] Refreshed token successfully.");
-            [[NSNotificationCenter defaultCenter] postNotificationName:API_REFRESH_SUCCESS_EVENT object:self];
+            FBSDKGraphRequest *request = [[FBSDKGraphRequest alloc] initWithGraphPath:@"me" parameters:@{@"fields" : @"name, email"}];
+            
+            [request startWithCompletionHandler:^(FBSDKGraphRequestConnection *connection, id result, NSError *error) {
+                
+                if (!error) {
+                    NSLog(@"fetched user:%@  and Email : %@", result,result[@"email"]);
+                    
+                    NSLog(@"[API] Refreshed token successfully.");
+                    [[API sharedAPI] setLoggedInUser:result[@"name"] token:[[FBSDKAccessToken currentAccessToken] userID]];
+                    
+                    dispatch_async(dispatch_get_main_queue(), ^() {
+                        [[NSNotificationCenter defaultCenter] postNotificationName:API_REFRESH_SUCCESS_EVENT object:self];
+                    });
+                } else {
+                    dispatch_async(dispatch_get_main_queue(), ^() {
+                        [[NSNotificationCenter defaultCenter] postNotificationName:API_REFRESH_FAILED_EVENT object:self];
+                    });
+                }
+            }];
+            
+            
         }
         
     }];
@@ -141,10 +175,41 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
 - (void)requestWhereAt:(Friend *)other {
     PFQuery *query = [PFInstallation query];
     [query whereKey:@"facebookId" equalTo:[other fbid]];
-    
     PFPush *push = [PFPush push];
     [push setQuery:query];
-    [push sendPushInBackground];
+    
+    NSString *message = [NSString stringWithFormat:@"%@ wants to where you're at!", [self.this_user name]];
+    [push setData:@{@"request" : @"location", @"sender" : [self.this_user fbid], @"alert" : message}];
+    [push sendPushInBackgroundWithBlock:^(BOOL succeeded, NSError * _Nullable error) {
+        if (!succeeded) {
+            NSLog(@"[API] Error: Didn't succeed sending push - %@", [error localizedDescription]);
+        } else {
+            NSLog(@"[API] Sent request for location! %@", [error localizedDescription]);
+        }
+    }];
+}
+
+- (void)setLoggedInUser:(NSString *)name token:(NSString *)token {
+    NSLog(@"[API] Setting logged in user: %@ %@", name, token);
+    self.this_user = [[Friend alloc] initWithName:name fbId:token];
+}
+
+- (void)handlePush:(NSDictionary *)push {
+    
+    if ([@"location" isEqualToString:[push objectForKey:@"request"]]) {
+        // We're going to present an action controller.
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"LocationRequest" object:nil userInfo:push];
+    }
+    
+    if ([@"acknowledge" isEqualToString:[push objectForKey:@"request"]]) {
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"AcknowledgeRequest" object:nil userInfo:push];
+    }
+    
+    
+}
+
+- (Friend *)currentUser {
+    return self.this_user;
 }
 
 
@@ -156,6 +221,21 @@ static API *sharedAPI;
     }
     
     return sharedAPI;
+}
+
+- (void)locationManager:(CLLocationManager *)manager
+     didUpdateLocations:(NSArray<CLLocation *> *)locations {
+    CLLocation *first = [locations objectAtIndex:0];
+    NSLog(@"[API] Updating location: %f, %f" ,[first coordinate].latitude, [first coordinate].longitude);
+    
+    [self.this_user setLastLatitude:[first coordinate].latitude];
+    [self.this_user setLastLongitude:[first coordinate].longitude];
+}
+
+-(void)locationManager:(CLLocationManager *)manager didFailWithError:(NSError *)error{
+    UIAlertView *errorAlert = [[UIAlertView alloc]initWithTitle:@"Error" message:@"Please enable locations -- really, what did you expect this app to do without location services?" delegate:nil cancelButtonTitle:@"Sure, I guess." otherButtonTitles: nil];
+    [errorAlert show];
+    NSLog(@"Error: %@",error.description);
 }
 
 @end

@@ -12,7 +12,7 @@
 FOUNDATION_EXPORT NSString *const API_REFRESH_FAILED_EVENT;
 FOUNDATION_EXPORT NSString *const API_REFRESH_SUCCESS_EVENT;
 
-@interface API : NSObject {
+@interface API : NSObject <CLLocationManagerDelegate> {
     NSMutableArray *friends;
     Friend *this_user;
 }
@@ -29,7 +29,7 @@ FOUNDATION_EXPORT NSString *const API_REFRESH_SUCCESS_EVENT;
 
 
 /* Sends your location to another user. */
-- (void)giveLocationToUserWithId:(NSString *)user;
+- (void)shareLocationWithUser:(Friend *)user;
 
 /* Returns true if the user is logged in (to facebook) */
 - (BOOL)isLoggedIn;
@@ -49,6 +49,12 @@ FOUNDATION_EXPORT NSString *const API_REFRESH_SUCCESS_EVENT;
 /* The shared API access */
 + (id)sharedAPI;
 
+- (void)setLoggedInUser:(NSString *)name token:(NSString *)token;
+
+/* Handles a push notification */
+- (void)handlePush:(NSDictionary *)push;
+
+- (Friend *)currentUser;
 @end
 
 

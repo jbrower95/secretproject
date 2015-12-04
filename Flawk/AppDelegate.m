@@ -10,6 +10,7 @@
 #import <FBSDKCoreKit/FBSDKCoreKit.h>
 #import <Parse/Parse.h>
 #import <ParseFacebookUtilsV4/PFFacebookUtils.h>
+#import "API.h"
 
 @interface AppDelegate ()
 
@@ -24,15 +25,17 @@
                   clientKey:@"W7vgDEUea8r184Ptyt9vbx7C9wfD5WXq7M1Rmo0z"];
     [PFFacebookUtils initializeFacebookWithApplicationLaunchOptions:launchOptions];
     
-    PFInstallation *installation = [PFInstallation currentInstallation];
-    
-    [installation save];
-    
-    
     UIUserNotificationType userNotificationTypes = (UIUserNotificationTypeAlert | UIUserNotificationTypeBadge | UIUserNotificationTypeSound);
     UIUserNotificationSettings *settings = [UIUserNotificationSettings settingsForTypes:userNotificationTypes  categories:nil];
     [application registerUserNotificationSettings:settings];
     [application registerForRemoteNotifications];
+    
+    PFInstallation *installation = [PFInstallation currentInstallation];
+    
+    [installation saveEventually];
+    
+    
+    
     
     
     return YES;
@@ -77,7 +80,11 @@
 }
 
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo {
-    [PFPush handlePush:userInfo];
+    
+    NSLog(@"Received notification: %@", userInfo);
+    
+    //[PFPush handlePush:userInfo];
+    [[API sharedAPI] handlePush:userInfo];
 }
 
 @end
