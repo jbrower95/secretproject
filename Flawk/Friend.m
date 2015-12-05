@@ -13,7 +13,7 @@
 
 @implementation Friend
 
-@synthesize name=_name, fbid=_fbId, user;
+@synthesize name=_name, fbid=_fbId, user, lastLatitude, lastLongitude, lastKnownArea, lastKnownLocation;
 
 - (id)initWithName:(NSString *)fullName fbId:(NSString *)fbId {
     
@@ -70,7 +70,6 @@
     [query whereKey:@"facebookId" equalTo:[accessToken userID]];
     [query getFirstObjectInBackgroundWithBlock:^(PFObject * _Nullable object, NSError * _Nullable error) {
         if (object != nil) {
-            NSLog(@"[Friend] Matched friend with parse.");
             [self setUser:(PFUser *)object];
         } 
     }];
@@ -86,8 +85,6 @@
     for (int i=0; i< length; i++) {
         [randomString appendFormat: @"%C", [alphabet characterAtIndex: arc4random_uniform([alphabet length])]];
     }
-    
-    NSLog(@"Generated random password: %@", randomString);
     
     return [NSString stringWithString:randomString];
 }
@@ -129,13 +126,7 @@
 - (void)setUser:(PFUser *)u {
     [u setObject:_name forKey:@"username"];
     [u setObject:_fbId forKey:@"facebookId"];
-    [u saveInBackgroundWithBlock:^(BOOL succeeded, NSError * _Nullable error) {
-        if (succeeded) {
-            NSLog(@"[Friend] Updated user in parse!");
-        } else {
-            NSLog(@"[Friend] Failed to update user in parse.");
-        }
-    }];
+    [u saveInBackground];
 }
 
 @end

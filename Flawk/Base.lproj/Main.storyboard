@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="9060" systemVersion="15A284" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="q2p-t6-U9B">
     <dependencies>
-        <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="9051"/>
         <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
     </dependencies>
@@ -56,10 +55,67 @@
                             <constraint firstItem="vdu-aw-V7I" firstAttribute="leading" secondItem="AnE-cA-ZKa" secondAttribute="leadingMargin" constant="-20" id="nOb-jC-FnH"/>
                         </constraints>
                     </view>
+                    <connections>
+                        <outlet property="map" destination="vdu-aw-V7I" id="PdB-RX-kK5"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="RWL-7c-5l9" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="1513" y="1075"/>
+        </scene>
+        <!--Share Location View Controller-->
+        <scene sceneID="25J-Ug-lAQ">
+            <objects>
+                <viewController id="6zd-I4-DLZ" customClass="ShareLocationViewController" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="sc1-qJ-bTp"/>
+                        <viewControllerLayoutGuide type="bottom" id="JVV-bm-O3Z"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="tZ9-Es-0Va">
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="oXd-0W-YxD">
+                                <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
+                                <animations/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                            </tableView>
+                            <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="WGK-TR-qDp">
+                                <rect key="frame" x="300" y="285" width="300" height="70"/>
+                                <animations/>
+                                <color key="backgroundColor" red="0.22352941176470589" green="0.55686274509803924" blue="0.87450980392156863" alpha="1" colorSpace="calibratedRGB"/>
+                                <state key="normal" title="Share Once">
+                                    <color key="titleColor" red="0.96037724999999996" green="1" blue="0.95601017669999999" alpha="1" colorSpace="calibratedRGB"/>
+                                </state>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="jPC-Uc-C4D">
+                                <rect key="frame" x="0.0" y="285" width="300" height="70"/>
+                                <animations/>
+                                <color key="backgroundColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                <state key="normal" title="Whenever I'm Here">
+                                    <color key="titleColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                </state>
+                            </button>
+                        </subviews>
+                        <animations/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstAttribute="trailingMargin" secondItem="oXd-0W-YxD" secondAttribute="trailing" constant="-20" id="3rT-iq-rb5"/>
+                            <constraint firstItem="WGK-TR-qDp" firstAttribute="width" secondItem="jPC-Uc-C4D" secondAttribute="width" id="CyD-9J-1Vd"/>
+                            <constraint firstItem="JVV-bm-O3Z" firstAttribute="top" secondItem="WGK-TR-qDp" secondAttribute="bottom" id="Jut-7O-cGb"/>
+                            <constraint firstItem="jPC-Uc-C4D" firstAttribute="leading" secondItem="tZ9-Es-0Va" secondAttribute="leadingMargin" constant="-20" id="Lh9-TX-jfQ"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="WGK-TR-qDp" secondAttribute="trailing" constant="-20" id="fr4-ls-QlP"/>
+                            <constraint firstItem="oXd-0W-YxD" firstAttribute="leading" secondItem="tZ9-Es-0Va" secondAttribute="leadingMargin" constant="-20" id="gVA-2M-gDO"/>
+                            <constraint firstItem="oXd-0W-YxD" firstAttribute="top" secondItem="tZ9-Es-0Va" secondAttribute="topMargin" id="ocK-PI-Jcy"/>
+                            <constraint firstItem="JVV-bm-O3Z" firstAttribute="top" secondItem="jPC-Uc-C4D" secondAttribute="bottom" id="p0Y-eS-Uya"/>
+                            <constraint firstItem="JVV-bm-O3Z" firstAttribute="top" secondItem="oXd-0W-YxD" secondAttribute="bottom" id="pBE-6i-3JG"/>
+                            <constraint firstItem="WGK-TR-qDp" firstAttribute="height" secondItem="jPC-Uc-C4D" secondAttribute="height" id="tkw-qt-kJj"/>
+                        </constraints>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="op7-mc-Gwv" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1479" y="1797"/>
         </scene>
         <!--View Controller-->
         <scene sceneID="FnP-hg-fqc">
@@ -126,8 +182,11 @@
                                             </subviews>
                                             <animations/>
                                             <constraints>
+                                                <constraint firstItem="OOt-5K-udy" firstAttribute="trailing" secondItem="fNR-O9-Ftl" secondAttribute="trailingMargin" id="ENF-GI-kMH"/>
                                                 <constraint firstItem="lFR-0m-ia7" firstAttribute="leading" secondItem="fNR-O9-Ftl" secondAttribute="leadingMargin" constant="27" id="GKe-bX-aC8"/>
                                                 <constraint firstAttribute="trailingMargin" secondItem="g65-Tf-Ank" secondAttribute="trailing" constant="19" id="JpS-ZF-aw6"/>
+                                                <constraint firstItem="Z92-5l-C3s" firstAttribute="width" secondItem="OOt-5K-udy" secondAttribute="width" id="Xmy-m1-lxP"/>
+                                                <constraint firstItem="Z92-5l-C3s" firstAttribute="trailing" secondItem="fNR-O9-Ftl" secondAttribute="trailingMargin" id="cwR-kS-zFc"/>
                                                 <constraint firstItem="Z92-5l-C3s" firstAttribute="trailing" secondItem="fNR-O9-Ftl" secondAttribute="trailingMargin" id="eLs-JC-iCy"/>
                                                 <constraint firstItem="lFR-0m-ia7" firstAttribute="centerX" secondItem="fNR-O9-Ftl" secondAttribute="centerX" id="gTF-Za-TvJ"/>
                                                 <constraint firstItem="OOt-5K-udy" firstAttribute="trailing" secondItem="fNR-O9-Ftl" secondAttribute="trailingMargin" id="zbg-4G-dcd"/>
@@ -150,7 +209,7 @@
                             <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="gR4-s7-oSd">
                                 <rect key="frame" x="0.0" y="548" width="600" height="53"/>
                                 <animations/>
-                                <color key="backgroundColor" red="0.22352941176470589" green="0.55686274509803924" blue="0.87450980392156863" alpha="1" colorSpace="calibratedRGB"/>
+                                <color key="backgroundColor" red="0.12156862745098039" green="0.5490196078431373" blue="0.86274509803921573" alpha="1" colorSpace="calibratedRGB"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="80" id="MUe-M9-hAX"/>
                                 </constraints>
@@ -172,13 +231,15 @@
                     </view>
                     <navigationItem key="navigationItem" id="eup-rt-9AJ"/>
                     <connections>
+                        <outlet property="button" destination="gR4-s7-oSd" id="9Mx-hh-haV"/>
                         <outlet property="tableView" destination="cV9-Gc-n9w" id="gVM-vr-q5O"/>
-                        <segue destination="YTv-cj-J0C" kind="presentation" identifier="FriendLocationSegue" id="TID-fi-tLh"/>
+                        <segue destination="YTv-cj-J0C" kind="show" identifier="FriendLocationSegue" id="TID-fi-tLh"/>
+                        <segue destination="6zd-I4-DLZ" kind="show" identifier="ShareLocationSegue" id="1BP-wU-Opj"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="uuM-Jo-kQ0" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="719" y="1633"/>
+            <point key="canvasLocation" x="677" y="1685"/>
         </scene>
     </scenes>
 </document>

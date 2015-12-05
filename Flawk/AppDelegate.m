@@ -68,8 +68,6 @@
     // Make this take text input.
     replyAction.behavior = UIUserNotificationActionBehaviorTextInput;
     
-    
-    
     UIMutableUserNotificationCategory *inviteCategory =
     [[UIMutableUserNotificationCategory alloc] init];
     

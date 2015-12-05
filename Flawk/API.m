@@ -24,6 +24,8 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
         friends = [[NSMutableArray alloc] init];
     }
     
+    self.this_user = [[Friend alloc] init];
+    
     return self;
 }
 
@@ -89,7 +91,9 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
     PFQuery *query = [PFInstallation query];
     [query whereKey:@"facebookId" equalTo:[user fbid]];
     
-    NSDictionary *data = @{@"request" : @"acknowledge", @"location" : [self.this_user lastKnownLocation], @"area" : [self.this_user lastKnownArea], @"lon" : [NSString stringWithFormat:@"%f", lon], @"lat" : [NSString stringWithFormat:@"%f", lat], @"from" : self.this_user.fbid};
+    NSString *message = [NSString stringWithFormat:@"%@ shared their location!", [[[API sharedAPI] this_user] name]];
+    
+    NSDictionary *data = @{@"request" : @"acknowledge", @"location" : [self.this_user lastKnownLocation], @"area" : [self.this_user lastKnownArea], @"lon" : [NSString stringWithFormat:@"%f", lon], @"lat" : [NSString stringWithFormat:@"%f", lat], @"from" : self.this_user.fbid, @"alert" : message, @"sound" : @"default"};
     
     [push setQuery:query];
     [push setData:data];
@@ -116,7 +120,7 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
     PFQuery *query = [PFInstallation query];
     [query whereKey:@"facebookId" equalTo:[user fbid]];
     
-    NSDictionary *data = @{@"request" : @"acknowledge", @"location" : [self.this_user lastKnownLocation], @"area" : [self.this_user lastKnownArea], @"lon" : [NSString stringWithFormat:@"%f", lon], @"lat" : [NSString stringWithFormat:@"%f", lat], @"from" : self.this_user.fbid};
+    NSDictionary *data = @{@"request" : @"acknowledge", @"location" : [self.this_user lastKnownLocation], @"area" : [self.this_user lastKnownArea], @"lon" : [NSString stringWithFormat:@"%f", lon], @"lat" : [NSString stringWithFormat:@"%f", lat], @"from" : self.this_user.fbid, @"sound" : @"default"};
     
     [push setQuery:query];
     [push setData:data];
@@ -214,7 +218,7 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
     [push setQuery:query];
     
     NSString *message = [NSString stringWithFormat:@"%@: where you @?", [self.this_user name]];
-    [push setData:@{@"request" : @"location", @"from" : [self.this_user fbid], @"alert" : message, @"category" : @"REQUEST_LOCATION_CATEGORY"}];
+    [push setData:@{@"request" : @"location", @"from" : [self.this_user fbid], @"alert" : message, @"category" : @"REQUEST_LOCATION_CATEGORY", @"sound" : @"default"}];
     [push sendPushInBackgroundWithBlock:^(BOOL succeeded, NSError * _Nullable error) {
         if (!succeeded) {
             NSLog(@"[API] Error: Didn't succeed sending push - %@", [error localizedDescription]);
@@ -226,18 +230,25 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
 
 - (void)setLoggedInUser:(NSString *)name token:(NSString *)token {
     NSLog(@"[API] Setting logged in user: %@ %@", name, token);
-    self.this_user = [[Friend alloc] initWithName:name fbId:token];
+    [self.this_user setName:name];
+    [self.this_user setFbid:token];
 }
 
 - (void)handlePush:(NSDictionary *)push {
     
-    if ([@"location" isEqualToString:[push objectForKey:@"request"]]) {
+    NSString *request = [push objectForKey:@"request"];
+    
+    if ([@"location" isEqualToString:request]) {
         // We're going to present an action controller.
         [[NSNotificationCenter defaultCenter] postNotificationName:@"LocationRequest" object:nil userInfo:push];
     }
     
-    if ([@"acknowledge" isEqualToString:[push objectForKey:@"request"]]) {
+    if ([@"acknowledge" isEqualToString:request]) {
         [[NSNotificationCenter defaultCenter] postNotificationName:@"AcknowledgeRequest" object:nil userInfo:push];
+    }
+    if ([@"message" isEqualToString:request]) {
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"MessageReceived" object:nil userInfo:push];
+        
     }
 }
 
@@ -246,16 +257,16 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
 }
 
 
-static API *sharedAPI;
+static API *sharedAPI = nil;
 
 + (id)sharedAPI {
     if (sharedAPI == nil) {
+        NSLog(@"[API] Initializing API..........");
         sharedAPI = [[API alloc] init];
-    }
-    
-    NSData *encodedObject = [[NSUserDefaults standardUserDefaults] objectForKey:@"current_user"];
-    if (encodedObject != nil) {
-        sharedAPI.this_user = (Friend *)[NSKeyedUnarchiver unarchiveObjectWithData:encodedObject];
+        NSData *encodedObject = [[NSUserDefaults standardUserDefaults] objectForKey:@"current_user"];
+        if (encodedObject != nil) {
+            sharedAPI.this_user = (Friend *)[NSKeyedUnarchiver unarchiveObjectWithData:encodedObject];
+        }
     }
     
     return sharedAPI;
@@ -268,10 +279,21 @@ static API *sharedAPI;
 
 - (void)locationManager:(CLLocationManager *)manager
      didUpdateLocations:(NSArray<CLLocation *> *)locations {
-    CLLocation *first = [locations objectAtIndex:0];
+    NSLog(@"[API] Updating location.");
+    CLLocation *first = [locations lastObject];
     
-    [self.this_user setLastLatitude:[first coordinate].latitude];
-    [self.this_user setLastLongitude:[first coordinate].longitude];
+    float oldLong = [self.this_user lastLongitude];
+    float oldLat = [self.this_user lastLatitude];
+    
+    [[[API sharedAPI] this_user] setLastLatitude:[first coordinate].latitude];
+    [[[API sharedAPI] this_user] setLastLongitude:[first coordinate].longitude];
+    
+    NSLog(@"[API] Location available! %f, %f", [first coordinate].latitude, [first coordinate].longitude);
+    if (oldLat == 0 && oldLong == 0) {
+        // This is our first update
+        NSLog(@"[API] First location!");
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"LocationAvailable" object:nil];
+    }
 }
 
 -(void)locationManager:(CLLocationManager *)manager didFailWithError:(NSError *)error{

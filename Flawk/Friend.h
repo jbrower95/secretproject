@@ -25,13 +25,13 @@
     NSString *lastKnownArea;
     
     /* The last known latitude of this friend. */
-    float lastLatitude;
+    double lastLatitude;
     
     /* The last known longitude of this friend. */
-    float lastlongitude;
+    double lastlongitude;
     
     /* The timestamp of the last known location. */
-    float lastTimestamp;
+    double lastTimestamp;
     
     /* The */
     PFUser *user;
@@ -49,9 +49,9 @@
 @property (nonatomic, retain) NSString *lastKnownLocation;
 @property (nonatomic, retain) NSString *lastKnownArea;
 
-@property (nonatomic, assign) float lastLatitude;
-@property (nonatomic, assign) float lastLongitude;
-@property (nonatomic, assign) float lastTimestamp;
+@property (nonatomic) double lastLatitude;
+@property (nonatomic) double lastLongitude;
+@property (nonatomic) double lastTimestamp;
 
 @property (nonatomic, retain) PFUser *user;
 

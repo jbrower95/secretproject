@@ -39,16 +39,13 @@
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(locationRequest:) name:@"LocationRequest" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(acknowledgeRequest:) name:@"AcknowledgeRequest" object:nil];
     
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(locationAvailable:) name:@"LocationAvailable" object:nil];
     
-    int button_height = 74;
-    button = [[UIButton alloc] initWithFrame:CGRectMake(0,self.view.frame.size.height - button_height, self.view.frame.size.width, button_height)];
-    [button setBackgroundColor:[UIColor colorWithRed:74.0/255.0f green:144.0/255.0f blue:226/255.0f alpha:1]];
-    [button setTitle:@"Check in" forState:UIControlStateNormal];
-    [self.view.window addSubview:button];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(messageReceived:) name:@"MessageReceived" object:nil];
+    
     
     
     self.navigationItem.title = @"Where are ü now";
-    
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Add Friends" style:UIBarButtonItemStylePlain target:self action:@selector(addFriends:)];
     
     /* Check if we're logged in */
@@ -56,10 +53,13 @@
         NSLog(@"Attempting to log in user...");
         [self login];
     } else {
-        NSLog(@"User is logged in!");
+        NSLog(@"User is logged in already!");
         [[API sharedAPI] refreshFacebookLogin];
         [self loadAllFriends];
     }
+    
+    [button setEnabled:NO];
+    [button setBackgroundColor:[UIColor colorWithRed:5/255.0f green:26/255.0f blue:41/255.0f alpha:.46f]];
     
     [self startStandardUpdates];
     
@@ -102,7 +102,7 @@
              NSLog(@"Cancelled");
          } else {
              NSLog(@"Logged in");
-             NSLog(@"Getting name..");
+             NSLog(@"Getting name with graph request..");
              
              FBSDKGraphRequest *request = [[FBSDKGraphRequest alloc] initWithGraphPath:@"me" parameters:@{@"fields" : @"name, email"}];
              
@@ -161,12 +161,12 @@
 
 
 - (void)locationRequest:(NSNotification *)pushNotification {
-    
+    NSLog(@"Got location request.");
     NSDictionary *userInfo = [pushNotification userInfo];
     
     if (userInfo != nil) {
         
-        NSString *senderId = [userInfo objectForKey:@"sender"];
+        NSString *senderId = [userInfo objectForKey:@"from"];
         
         for (Friend *friend in self.friends) {
             if ([senderId isEqualToString:[friend fbid]]) {
@@ -191,6 +191,26 @@
         }
         
     }
+    
+}
+
+
+- (void)locationAvailable:(NSNotification *)notification {
+    NSLog(@"Location available! Enabling checkin.");
+    [button setEnabled:YES];
+    [UIView animateWithDuration:2.0 animations:^{
+        [button setBackgroundColor:[UIColor colorWithRed:31/255.0f green:140/255.0f blue:220/255.0f alpha:1]];
+    }];
+}
+
+- (void)messageReceived:(NSNotification *)notification {
+    
+    NSLog(@"Received message!");
+    
+    NSDictionary *userInfo = [notification userInfo];
+    
+    NSString *from = [userInfo objectForKey:@"from_name"];
+    NSString *text = [userInfo objectForKey:@"message"];
     
 }
 
@@ -257,7 +277,7 @@
     const NSString *client_id = @"EGO1P4OIQGZS0EQZ5KIIW55OV3EEN03RCMHSBHU0GUVQZ345";
     const NSString *client_sec = @"E3LEBSPKBUYCFAWH0KTDH0XIEGA0LD01XJBRCR5UKIH2ZR4P";
     
-    NSString *venueURL = [NSString stringWithFormat:@"https://api.foursquare.com/v2/venues/search?ll=%.2f,%.2f&limit=5&intent=checkin&client_id=%@&client_secret=%@&v=20151203&m=foursquare", [me lastLatitude], [me lastLongitude], client_id, client_sec];
+    NSString *venueURL = [NSString stringWithFormat:@"https://api.foursquare.com/v2/venues/search?ll=%.9f,%.9f&limit=5&intent=checkin&client_id=%@&client_secret=%@&v=20151203&m=foursquare", [me lastLatitude], [me lastLongitude], client_id, client_sec];
     
     NSLog(@"Hitting venue url:");
     NSLog(@"%@", venueURL);
@@ -289,8 +309,8 @@
                 } else {
                     NSLog(@"Best venue: %@", bestVenue);
                     location = [bestVenue objectForKey:@"name"];
-                    NSDictionary *location = [bestVenue objectForKey:@"location"];
-                    description = [NSString stringWithFormat:@"%@, %@", [location objectForKey:@"city"], [location objectForKey:@"state"]];
+                    NSDictionary *location_dict = [bestVenue objectForKey:@"location"];
+                    description = [NSString stringWithFormat:@"%@, %@", [location_dict objectForKey:@"city"], [location_dict objectForKey:@"state"]];
                 }
                 
                 NSLog(@"[API] Setting area, location %@ %@", description, location);
@@ -350,22 +370,23 @@
     return [self.friends count];
 }
 
-- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    const NSString *segue = @"FriendLocationSegue";
+- (void)tableView:(UITableView *)table didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    
+    NSString *segue = @"FriendLocationSegue";
     
     Friend *f = [self.friends objectAtIndex:indexPath.row];
     
     if ([f locationKnown]) {
         [self performSegueWithIdentifier:segue sender:self];
-        NSLog(@"Woahhhh!");
     }
 }
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
-    if ([segue.identifier isEqualToString:@"showRecipeDetail"]) {
+    if ([segue.identifier isEqualToString:@"FriendLocationSegue"]) {
              NSIndexPath *indexPath = [tableView indexPathForSelectedRow];
              FriendLocationController *destViewController = segue.destinationViewController;
              destViewController.person = [self.friends objectAtIndex:indexPath.row];
+            [tableView deselectRowAtIndexPath:indexPath animated:YES];
     }
 }
 

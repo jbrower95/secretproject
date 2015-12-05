@@ -15,7 +15,7 @@
     
     IBOutlet UITableView *tableView;
     
-    UIButton *button;
+    IBOutlet UIButton *button;
     
     CLLocationManager *manager;
     
