@@ -24,7 +24,7 @@
 
 @implementation ViewController
 
-@synthesize manager, selectedFriend;
+@synthesize manager;
 - (void)viewDidLoad {
     
     // Register for API notifications here.

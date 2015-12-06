@@ -16,11 +16,8 @@
     IBOutlet UIButton *button;
     
     CLLocationManager *manager;
-    
-    Friend *selectedFriend;
 }
 @property (nonatomic, strong) CLLocationManager *manager;
-@property (nonatomic, retain) Friend *selectedFriend;
 
 @end
 
