@@ -8,6 +8,10 @@
 
 #import <UIKit/UIKit.h>
 
-@interface ShareLocationViewController : UIViewController
+@interface ShareLocationViewController : UIViewController <UITableViewDataSource, UITableViewDelegate> {
+    NSMutableSet<NSString *> *selections;
+    IBOutlet UITableView *tableView;
+}
 
+@property IBOutlet UITableView *tableView;
 @end

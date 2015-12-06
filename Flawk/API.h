@@ -58,6 +58,10 @@ FOUNDATION_EXPORT NSString *const API_REFRESH_SUCCESS_EVENT;
 
 - (void)sendMessageToUser:(Friend *)pal content:(NSString *)text completionHandler:(void (^)())completionHandler;
 
+- (void)getLocationAndAreaWithBlock:(void (^)())completion;
+
+- (void)shareLocationWithUsers:(NSSet *)users completion:(void (^)(BOOL))completionHandler;
+
 - (Friend *)currentUser;
 @end
 

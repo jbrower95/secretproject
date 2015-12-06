@@ -80,7 +80,7 @@
                                 <animations/>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                 <prototypes>
-                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" id="M17-YK-Kds">
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="friendSelectionCell" id="M17-YK-Kds">
                                         <rect key="frame" x="0.0" y="92" width="600" height="44"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="M17-YK-Kds" id="MD4-49-vlv">
@@ -91,6 +91,10 @@
                                         <animations/>
                                     </tableViewCell>
                                 </prototypes>
+                                <connections>
+                                    <outlet property="dataSource" destination="6zd-I4-DLZ" id="hr0-8g-tNm"/>
+                                    <outlet property="delegate" destination="6zd-I4-DLZ" id="VPw-oR-Y8h"/>
+                                </connections>
                             </tableView>
                             <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="WGK-TR-qDp">
                                 <rect key="frame" x="300" y="285" width="300" height="70"/>
@@ -99,6 +103,9 @@
                                 <state key="normal" title="Share Once">
                                     <color key="titleColor" red="0.96037724999999996" green="1" blue="0.95601017669999999" alpha="1" colorSpace="calibratedRGB"/>
                                 </state>
+                                <connections>
+                                    <action selector="shareOnce:" destination="6zd-I4-DLZ" eventType="touchUpInside" id="oRL-wp-gtE"/>
+                                </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="jPC-Uc-C4D">
                                 <rect key="frame" x="0.0" y="285" width="300" height="70"/>
@@ -129,6 +136,9 @@
                             <constraint firstItem="WGK-TR-qDp" firstAttribute="height" secondItem="jPC-Uc-C4D" secondAttribute="height" id="tkw-qt-kJj"/>
                         </constraints>
                     </view>
+                    <connections>
+                        <outlet property="tableView" destination="oXd-0W-YxD" id="w0i-hO-3xH"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="op7-mc-Gwv" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>

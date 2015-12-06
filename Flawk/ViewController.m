@@ -177,7 +177,9 @@
                     // share location
                     
                     dispatch_async(dispatch_get_main_queue(), ^{
-                        [self shareLocationWithUser:friend];
+                        [[API sharedAPI] getLocationAndAreaWithBlock:^{
+                            [[API sharedAPI] shareLocationWithUser:friend];
+                        }];
                     });
                     
                     
@@ -269,70 +271,6 @@
     
     NSLog(@"[Main] Successfully associated with parse!");
     
-}
-
-- (void)shareLocationWithUser:(Friend *)friend {
-    
-    NSURLSessionConfiguration *sessionConfig =
-    [NSURLSessionConfiguration defaultSessionConfiguration];
-    sessionConfig.allowsCellularAccess = YES;
-    sessionConfig.timeoutIntervalForRequest = 30.0;
-    sessionConfig.timeoutIntervalForResource = 60.0;
-    sessionConfig.HTTPMaximumConnectionsPerHost = 1;
-    Friend *me = [[API sharedAPI] this_user];
-    
-    const NSString *client_id = @"EGO1P4OIQGZS0EQZ5KIIW55OV3EEN03RCMHSBHU0GUVQZ345";
-    const NSString *client_sec = @"E3LEBSPKBUYCFAWH0KTDH0XIEGA0LD01XJBRCR5UKIH2ZR4P";
-    
-    NSString *venueURL = [NSString stringWithFormat:@"https://api.foursquare.com/v2/venues/search?ll=%.9f,%.9f&limit=5&intent=checkin&client_id=%@&client_secret=%@&v=20151203&m=foursquare", [me lastLatitude], [me lastLongitude], client_id, client_sec];
-    
-    NSLog(@"Hitting venue url:");
-    NSLog(@"%@", venueURL);
-    
-    NSURLSession *session =
-    [NSURLSession sessionWithConfiguration:sessionConfig
-                                  delegate:self
-                             delegateQueue:nil];
-    
-    
-    NSURLSessionDataTask *dataTask = [session dataTaskWithURL:[NSURL URLWithString:venueURL] completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
-       
-        if (data != nil) {
-            NSError *e;
-            NSDictionary *response = [NSJSONSerialization JSONObjectWithData:data options:NULL error:&e];
-            
-            if (response != nil) {
-                NSLog(@"%@", response);
-                NSArray *venues = (NSArray *)[(NSDictionary *)[response objectForKey:@"response"] objectForKey:@"venues"];
-                NSDictionary *bestVenue = [venues objectAtIndex:0];
-                
-                NSString *description;
-                NSString *location;
-                
-                if (bestVenue == nil) {
-                    NSLog(@"Best venue was null. Defaulting to somewhere.");
-                    description = @"Somewhere?";
-                    location = @"Couldn't get location.";
-                } else {
-                    NSLog(@"Best venue: %@", bestVenue);
-                    location = [bestVenue objectForKey:@"name"];
-                    NSDictionary *location_dict = [bestVenue objectForKey:@"location"];
-                    description = [NSString stringWithFormat:@"%@, %@", [location_dict objectForKey:@"city"], [location_dict objectForKey:@"state"]];
-                }
-                
-                NSLog(@"[API] Setting area, location %@ %@", description, location);
-                
-                [[[API sharedAPI] this_user] setLastKnownArea:description];
-                [[[API sharedAPI] this_user] setLastKnownLocation:location];
-                
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    [[API sharedAPI] shareLocationWithUser:friend];
-                });
-            }
-        }
-        
-    }];
-    [dataTask resume];
 }
 
 

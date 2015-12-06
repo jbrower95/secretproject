@@ -126,9 +126,23 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
     
 }
 
+- (void)shareLocationWithUsers:(NSMutableSet *)users completion:(void (^)(BOOL))completionHandler {
+    
+    if ([users count] == 0) {
+        completionHandler(YES);
+    }
+    
+    NSString *fbid = [users anyObject];
+    [users removeObject:fbid];
+    
+    Friend *f = [[Friend alloc] initWithName:nil fbId:fbid];
+    [self shareLocationWithUser:f completion:^{
+        [self shareLocationWithUsers:users completion:completionHandler];
+    }];
+}
 
 /* Sends a push indicating the location to the other user */
-- (void)shareLocationWithUser:(Friend *)user completion:(void (^)(void))completionHandler {
+- (void)shareLocationWithUser:(Friend *)user completion:(void (^)())completionHandler {
     
     CGFloat lon = [self.this_user lastLongitude];
     CGFloat lat = [self.this_user lastLatitude];
@@ -195,6 +209,71 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
         Friend *friend = [[Friend alloc] initWithFacebookDict:dict];
         [self.friends addObject:friend];
     }
+}
+
+- (void)getLocationAndAreaWithBlock:(void (^)())completion {
+    
+    NSURLSessionConfiguration *sessionConfig =
+    [NSURLSessionConfiguration defaultSessionConfiguration];
+    sessionConfig.allowsCellularAccess = YES;
+    sessionConfig.timeoutIntervalForRequest = 30.0;
+    sessionConfig.timeoutIntervalForResource = 60.0;
+    sessionConfig.HTTPMaximumConnectionsPerHost = 1;
+    Friend *me = [[API sharedAPI] this_user];
+    
+    const NSString *client_id = @"EGO1P4OIQGZS0EQZ5KIIW55OV3EEN03RCMHSBHU0GUVQZ345";
+    const NSString *client_sec = @"E3LEBSPKBUYCFAWH0KTDH0XIEGA0LD01XJBRCR5UKIH2ZR4P";
+    
+    NSString *venueURL = [NSString stringWithFormat:@"https://api.foursquare.com/v2/venues/search?ll=%.9f,%.9f&limit=5&intent=checkin&client_id=%@&client_secret=%@&v=20151203&m=foursquare", [me lastLatitude], [me lastLongitude], client_id, client_sec];
+    
+    NSLog(@"Hitting venue url:");
+    NSLog(@"%@", venueURL);
+    
+    NSURLSession *session =
+    [NSURLSession sessionWithConfiguration:sessionConfig
+                                  delegate:self
+                             delegateQueue:nil];
+    
+    
+    NSURLSessionDataTask *dataTask = [session dataTaskWithURL:[NSURL URLWithString:venueURL] completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+        
+        if (data != nil) {
+            NSError *e;
+            NSDictionary *response = [NSJSONSerialization JSONObjectWithData:data options:NULL error:&e];
+            
+            if (response != nil) {
+                NSLog(@"%@", response);
+                NSArray *venues = (NSArray *)[(NSDictionary *)[response objectForKey:@"response"] objectForKey:@"venues"];
+                NSDictionary *bestVenue = [venues objectAtIndex:0];
+                
+                NSString *description;
+                NSString *location;
+                
+                if (bestVenue == nil) {
+                    NSLog(@"Best venue was null. Defaulting to somewhere.");
+                    description = @"Somewhere?";
+                    location = @"Couldn't get location.";
+                } else {
+                    NSLog(@"Best venue: %@", bestVenue);
+                    location = [bestVenue objectForKey:@"name"];
+                    NSDictionary *location_dict = [bestVenue objectForKey:@"location"];
+                    description = [NSString stringWithFormat:@"%@, %@", [location_dict objectForKey:@"city"], [location_dict objectForKey:@"state"]];
+                }
+                
+                NSLog(@"[API] Setting area, location %@ %@", description, location);
+                
+                [[[API sharedAPI] this_user] setLastKnownArea:description];
+                [[[API sharedAPI] this_user] setLastKnownLocation:location];
+            }
+            
+            dispatch_async(dispatch_get_main_queue(), ^{
+                completion();
+            });
+        }
+        
+    }];
+    [dataTask resume];
+    
 }
 
 
