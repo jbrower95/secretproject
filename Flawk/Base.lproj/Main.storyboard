@@ -63,10 +63,10 @@
             </objects>
             <point key="canvasLocation" x="1513" y="1075"/>
         </scene>
-        <!--Share Location View Controller-->
+        <!--Share your location-->
         <scene sceneID="25J-Ug-lAQ">
             <objects>
-                <viewController id="6zd-I4-DLZ" customClass="ShareLocationViewController" sceneMemberID="viewController">
+                <viewController title="Share your location" id="6zd-I4-DLZ" customClass="ShareLocationViewController" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="sc1-qJ-bTp"/>
                         <viewControllerLayoutGuide type="bottom" id="JVV-bm-O3Z"/>
@@ -75,15 +75,27 @@
                         <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="oXd-0W-YxD">
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" rowHeight="44" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="oXd-0W-YxD">
                                 <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                                 <animations/>
-                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                <prototypes>
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" id="M17-YK-Kds">
+                                        <rect key="frame" x="0.0" y="92" width="600" height="44"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="M17-YK-Kds" id="MD4-49-vlv">
+                                            <rect key="frame" x="0.0" y="0.0" width="600" height="44"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <animations/>
+                                        </tableViewCellContentView>
+                                        <animations/>
+                                    </tableViewCell>
+                                </prototypes>
                             </tableView>
                             <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="WGK-TR-qDp">
                                 <rect key="frame" x="300" y="285" width="300" height="70"/>
                                 <animations/>
-                                <color key="backgroundColor" red="0.22352941176470589" green="0.55686274509803924" blue="0.87450980392156863" alpha="1" colorSpace="calibratedRGB"/>
+                                <color key="backgroundColor" red="0.14901961386203766" green="0.3490196168422699" blue="0.41568627953529358" alpha="1" colorSpace="calibratedRGB"/>
                                 <state key="normal" title="Share Once">
                                     <color key="titleColor" red="0.96037724999999996" green="1" blue="0.95601017669999999" alpha="1" colorSpace="calibratedRGB"/>
                                 </state>
@@ -91,7 +103,10 @@
                             <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="jPC-Uc-C4D">
                                 <rect key="frame" x="0.0" y="285" width="300" height="70"/>
                                 <animations/>
-                                <color key="backgroundColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                <color key="backgroundColor" red="0.1803921568627451" green="0.47058823529411764" blue="0.84313725490196079" alpha="1" colorSpace="calibratedRGB"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="80" id="Ouk-jo-7se"/>
+                                </constraints>
                                 <state key="normal" title="Whenever I'm Here">
                                     <color key="titleColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                 </state>
@@ -101,8 +116,10 @@
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
                             <constraint firstAttribute="trailingMargin" secondItem="oXd-0W-YxD" secondAttribute="trailing" constant="-20" id="3rT-iq-rb5"/>
+                            <constraint firstItem="WGK-TR-qDp" firstAttribute="leading" secondItem="jPC-Uc-C4D" secondAttribute="trailing" id="Adv-Tf-fnE"/>
                             <constraint firstItem="WGK-TR-qDp" firstAttribute="width" secondItem="jPC-Uc-C4D" secondAttribute="width" id="CyD-9J-1Vd"/>
                             <constraint firstItem="JVV-bm-O3Z" firstAttribute="top" secondItem="WGK-TR-qDp" secondAttribute="bottom" id="Jut-7O-cGb"/>
+                            <constraint firstItem="WGK-TR-qDp" firstAttribute="leading" secondItem="jPC-Uc-C4D" secondAttribute="trailing" id="Kwu-8b-3Ce"/>
                             <constraint firstItem="jPC-Uc-C4D" firstAttribute="leading" secondItem="tZ9-Es-0Va" secondAttribute="leadingMargin" constant="-20" id="Lh9-TX-jfQ"/>
                             <constraint firstAttribute="trailingMargin" secondItem="WGK-TR-qDp" secondAttribute="trailing" constant="-20" id="fr4-ls-QlP"/>
                             <constraint firstItem="oXd-0W-YxD" firstAttribute="leading" secondItem="tZ9-Es-0Va" secondAttribute="leadingMargin" constant="-20" id="gVA-2M-gDO"/>
@@ -216,6 +233,9 @@
                                 <state key="normal" title="Check in">
                                     <color key="titleColor" red="0.96037724995896712" green="1" blue="0.95601017672257638" alpha="1" colorSpace="calibratedRGB"/>
                                 </state>
+                                <connections>
+                                    <action selector="checkin:" destination="XrT-Gn-U2v" eventType="touchUpInside" id="CaQ-Ub-kPW"/>
+                                </connections>
                             </button>
                         </subviews>
                         <animations/>

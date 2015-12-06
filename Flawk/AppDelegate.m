@@ -54,10 +54,7 @@
     replyAction.identifier = @"replyAction";
     
     // Localized string displayed in the action button
-    replyAction.title = @"Reply";
-    
-    // If you need to show UI, choose foreground
-    replyAction.activationMode = UIUserNotificationActivationModeBackground;
+    replyAction.title = @"Text";
     
     // Destructive actions display in red
     replyAction.destructive = NO;
@@ -65,8 +62,11 @@
     // Set whether the action requires the user to authenticate
     replyAction.authenticationRequired = NO;
     
-    // Make this take text input.
-    replyAction.behavior = UIUserNotificationActionBehaviorTextInput;
+    if ([replyAction respondsToSelector:@selector(setBehavior:)]) {
+        // Make this take text input.
+        replyAction.behavior = UIUserNotificationActionBehaviorTextInput;
+        replyAction.activationMode = UIUserNotificationActivationModeBackground;
+    }
     
     UIMutableUserNotificationCategory *inviteCategory =
     [[UIMutableUserNotificationCategory alloc] init];
@@ -102,26 +102,27 @@
 
 - (void)application:(UIApplication *)application
 handleActionWithIdentifier:(NSString *)identifier
-forRemoteNotification:(NSDictionary *)userInfo
-  completionHandler:(void (^)(void))completionHandler
+forRemoteNotification:(NSDictionary *)userInfo withResponseInfo:(NSDictionary *)responseInfo
+  completionHandler:(void (^)())completionHandler
 {
-    
     if (identifier != nil) {
         
+        NSString *from = [userInfo objectForKey:@"from"]; // this is the fb id of who sent this.
+        
         if ([identifier isEqualToString:@"replyAction"]) {
-            NSLog(@"do something else");
-            // unimplemented
+            NSString *message = [responseInfo objectForKey:UIUserNotificationActionResponseTypedTextKey];
+            
+            [[API sharedAPI] sendMessageToUser:[[Friend alloc] initWithName:nil fbId:from] content:message completionHandler:completionHandler];
             
         } else if ([identifier isEqualToString:@"sendLocationAction"]) {
             NSLog(@"%@", userInfo);
             
-            [[API sharedAPI] shareLocationWithUser:[[Friend alloc] initWithName:nil fbId:[userInfo objectForKey:@"from"]] completion:completionHandler];
+            [[API sharedAPI] shareLocationWithUser:[[Friend alloc] initWithName:nil fbId:from] completion:completionHandler];
         }
     } else {
         completionHandler();
     }
 }
-
 
 - (BOOL)application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation {
     return [[FBSDKApplicationDelegate sharedInstance] application:application

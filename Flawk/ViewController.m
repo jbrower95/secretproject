@@ -149,7 +149,7 @@
     
     NSString *fbId = [userInfo objectForKey:@"from"];
     
-    for (Friend *friend in self.friends) {
+    for (Friend *friend in [[API sharedAPI] friends]) {
         if ([fbId isEqualToString:[friend fbid]]) {
             [friend setLastLocation:CGPointMake(lon, lat) place:location area:area];
             break;
@@ -168,7 +168,7 @@
         
         NSString *senderId = [userInfo objectForKey:@"from"];
         
-        for (Friend *friend in self.friends) {
+        for (Friend *friend in [[API sharedAPI] friends]) {
             if ([senderId isEqualToString:[friend fbid]]) {
                 // Found friend. Show a prompt.
                 UIAlertController *controller = [UIAlertController alertControllerWithTitle:[NSString stringWithFormat:@"%@ wants to know where you're at!", [friend name]] message:nil preferredStyle:UIAlertControllerStyleAlert];
@@ -204,14 +204,23 @@
 }
 
 - (void)messageReceived:(NSNotification *)notification {
-    
     NSLog(@"Received message!");
     
     NSDictionary *userInfo = [notification userInfo];
     
-    NSString *from = [userInfo objectForKey:@"from_name"];
-    NSString *text = [userInfo objectForKey:@"message"];
+    NSString *from = [userInfo objectForKey:@"from"];
+    NSString *name = @"Unknown";
+    for (Friend *pal in [[API sharedAPI] friends]) {
+        if ([[pal fbid] isEqualToString:from]) {
+            name = [pal name];
+            break;
+        }
+    }
     
+    NSString *text = [userInfo objectForKey:@"text"];
+    
+    UIAlertController *controller = [UIAlertController alertControllerWithTitle:name message:text preferredStyle:UIAlertControllerStyleAlert];
+    [self presentViewController:controller animated:YES completion:nil];
 }
 
 - (void)refreshFailed:(id)sender {
@@ -244,8 +253,6 @@
         }
         
         NSLog(@"Got %lu friends.", (unsigned long)[receivedFriends count]);
-        
-        self.friends = receivedFriends;
         
         dispatch_async(dispatch_get_main_queue(), ^() {
             [tableView reloadData];
@@ -335,10 +342,15 @@
     
     
 }
-     
+
 - (IBAction)addFriends:(id)sender {
          
     NSLog(@"Ayy");
+}
+
+
+- (IBAction)checkin:(id)sender {
+    [self performSegueWithIdentifier:@"ShareLocationSegue" sender:nil];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -357,7 +369,7 @@
     }
     
     /* Apply friend to cell */
-    Friend *friend = [self.friends objectAtIndex:indexPath.row];
+    Friend *friend = [[[API sharedAPI] friends] objectAtIndex:indexPath.row];
     if (friend != nil) {
         // apply them
         [cell applyFriend:friend];
@@ -367,14 +379,14 @@
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return [self.friends count];
+    return [[[API sharedAPI] friends] count];
 }
 
 - (void)tableView:(UITableView *)table didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     
     NSString *segue = @"FriendLocationSegue";
     
-    Friend *f = [self.friends objectAtIndex:indexPath.row];
+    Friend *f = [[[API sharedAPI] friends] objectAtIndex:indexPath.row];
     
     if ([f locationKnown]) {
         [self performSegueWithIdentifier:segue sender:self];
@@ -385,7 +397,7 @@
     if ([segue.identifier isEqualToString:@"FriendLocationSegue"]) {
              NSIndexPath *indexPath = [tableView indexPathForSelectedRow];
              FriendLocationController *destViewController = segue.destinationViewController;
-             destViewController.person = [self.friends objectAtIndex:indexPath.row];
+             destViewController.person = [[[API sharedAPI] friends] objectAtIndex:indexPath.row];
             [tableView deselectRowAtIndexPath:indexPath animated:YES];
     }
 }

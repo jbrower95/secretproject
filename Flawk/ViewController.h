@@ -11,8 +11,6 @@
 
 @interface ViewController : UIViewController<UITableViewDataSource, UITableViewDelegate, NSURLSessionDataDelegate, CLLocationManagerDelegate> {
     
-    NSArray *friends;
-    
     IBOutlet UITableView *tableView;
     
     IBOutlet UIButton *button;
@@ -21,7 +19,6 @@
     
     Friend *selectedFriend;
 }
-@property (nonatomic, retain) NSArray *friends;
 @property (nonatomic, strong) CLLocationManager *manager;
 @property (nonatomic, retain) Friend *selectedFriend;
 

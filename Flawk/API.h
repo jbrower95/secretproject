@@ -54,7 +54,9 @@ FOUNDATION_EXPORT NSString *const API_REFRESH_SUCCESS_EVENT;
 /* Handles a push notification */
 - (void)handlePush:(NSDictionary *)push;
 
-- (void)shareLocationWithUser:(Friend *)user completion:(void (^)(void))completionHandler;
+- (void)shareLocationWithUser:(Friend *)user completion:(void (^)())completionHandler;
+
+- (void)sendMessageToUser:(Friend *)pal content:(NSString *)text completionHandler:(void (^)())completionHandler;
 
 - (Friend *)currentUser;
 @end

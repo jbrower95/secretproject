@@ -25,7 +25,7 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
     }
     
     self.this_user = [[Friend alloc] init];
-    
+    self.friends = [[NSMutableArray alloc] init];
     return self;
 }
 
@@ -108,6 +108,24 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
     }];
 }
 
+- (void)sendMessageToUser:(Friend *)user content:(NSString *)text completionHandler:(void (^)())completionHandler {
+    
+    PFPush *push = [PFPush push];
+    
+    PFQuery *query = [PFInstallation query];
+    [query whereKey:@"facebookId" equalTo:[user fbid]];
+    
+    NSDictionary *data = @{@"request" : @"message", @"from" : self.this_user.fbid, @"sound" : @"default", @"text" : text, @"alert" : [NSString stringWithFormat:@"%@: %@", [[[API sharedAPI] this_user] name], text]};
+    [push setData:data];
+    [push sendPushInBackgroundWithBlock:^(BOOL succeeded, NSError * _Nullable error) {
+        if (!succeeded) {
+            NSLog(@"[API] Couldn't send message in background.");
+        }
+        completionHandler();
+    }];
+    
+}
+
 
 /* Sends a push indicating the location to the other user */
 - (void)shareLocationWithUser:(Friend *)user completion:(void (^)(void))completionHandler {
@@ -172,10 +190,10 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
 }
 
 - (void)parseFriends:(NSArray *)f {
-    [friends removeAllObjects];
+    [self.friends removeAllObjects];
     for (NSDictionary *dict in f) {
         Friend *friend = [[Friend alloc] initWithFacebookDict:dict];
-        [friends addObject:friend];
+        [self.friends addObject:friend];
     }
 }
 
@@ -248,7 +266,6 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
     }
     if ([@"message" isEqualToString:request]) {
         [[NSNotificationCenter defaultCenter] postNotificationName:@"MessageReceived" object:nil userInfo:push];
-        
     }
 }
 
