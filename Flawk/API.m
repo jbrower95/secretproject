@@ -16,16 +16,27 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
 
 @implementation API
 
-@synthesize friends, this_user;
-
+@synthesize friends, this_user, checkins;
 
 - (id)init {
     if (self = [super init]) {
-        friends = [[NSMutableArray alloc] init];
+        self.friends = [[NSMutableArray alloc] init];
+        self.this_user = [[Friend alloc] init];
+        self.checkins = [[NSMutableSet alloc] init];
     }
     
-    self.this_user = [[Friend alloc] init];
-    self.friends = [[NSMutableArray alloc] init];
+    NSData *friendsData = [[NSUserDefaults standardUserDefaults] objectForKey:@"friends"];
+    
+    if (friendsData != nil) {
+        self.friends = (NSMutableArray *)[NSKeyedUnarchiver unarchiveObjectWithData:friendsData];
+    }
+    
+    NSData *userData = [[NSUserDefaults standardUserDefaults] objectForKey:@"this_user"];
+    
+    if (userData != nil) {
+        self.this_user = (Friend *)[NSKeyedUnarchiver unarchiveObjectWithData:userData];
+    }
+    
     return self;
 }
 
@@ -101,7 +112,7 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
     // Send push.
     [push sendPushInBackgroundWithBlock:^(BOOL succeeded, NSError * _Nullable error) {
         if (succeeded) {
-            NSLog(@"[API] Successfully shared location!");
+            NSLog(@"[API] Successfully shared location with user: %@ %@", [user name], [user fbid]);
         } else {
             NSLog(@"[API] Failed to share location: %@", [error localizedFailureReason]);
         }
@@ -109,7 +120,6 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
 }
 
 - (void)sendMessageToUser:(Friend *)user content:(NSString *)text completionHandler:(void (^)())completionHandler {
-    
     PFPush *push = [PFPush push];
     
     PFQuery *query = [PFInstallation query];
@@ -117,17 +127,16 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
     
     NSDictionary *data = @{@"request" : @"message", @"from" : self.this_user.fbid, @"sound" : @"default", @"text" : text, @"alert" : [NSString stringWithFormat:@"%@: %@", [[[API sharedAPI] this_user] name], text]};
     [push setData:data];
+    [push setQuery:query];
     [push sendPushInBackgroundWithBlock:^(BOOL succeeded, NSError * _Nullable error) {
         if (!succeeded) {
             NSLog(@"[API] Couldn't send message in background.");
         }
         completionHandler();
     }];
-    
 }
 
 - (void)shareLocationWithUsers:(NSMutableSet *)users completion:(void (^)(BOOL))completionHandler {
-    
     if ([users count] == 0) {
         completionHandler(YES);
     }
@@ -180,10 +189,7 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
             FBSDKGraphRequest *request = [[FBSDKGraphRequest alloc] initWithGraphPath:@"me" parameters:@{@"fields" : @"name, email"}];
             
             [request startWithCompletionHandler:^(FBSDKGraphRequestConnection *connection, id result, NSError *error) {
-                
                 if (!error) {
-                    NSLog(@"fetched user:%@  and Email : %@", result,result[@"email"]);
-                    
                     NSLog(@"[API] Refreshed token successfully.");
                     [[API sharedAPI] setLoggedInUser:result[@"name"] token:[[FBSDKAccessToken currentAccessToken] userID]];
                     
@@ -223,8 +229,9 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
     
     const NSString *client_id = @"EGO1P4OIQGZS0EQZ5KIIW55OV3EEN03RCMHSBHU0GUVQZ345";
     const NSString *client_sec = @"E3LEBSPKBUYCFAWH0KTDH0XIEGA0LD01XJBRCR5UKIH2ZR4P";
+    const int radius = 400;
     
-    NSString *venueURL = [NSString stringWithFormat:@"https://api.foursquare.com/v2/venues/search?ll=%.9f,%.9f&limit=5&intent=checkin&client_id=%@&client_secret=%@&v=20151203&m=foursquare", [me lastLatitude], [me lastLongitude], client_id, client_sec];
+    NSString *venueURL = [NSString stringWithFormat:@"https://api.foursquare.com/v2/venues/search?ll=%.9f,%.9f&limit=5&intent=checkin&radius=%d&client_id=%@&client_secret=%@&v=20151203&m=foursquare", [me lastLatitude], [me lastLongitude], radius, client_id, client_sec];
     
     NSLog(@"Hitting venue url:");
     NSLog(@"%@", venueURL);
@@ -242,19 +249,17 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
             NSDictionary *response = [NSJSONSerialization JSONObjectWithData:data options:NULL error:&e];
             
             if (response != nil) {
-                NSLog(@"%@", response);
                 NSArray *venues = (NSArray *)[(NSDictionary *)[response objectForKey:@"response"] objectForKey:@"venues"];
+                
                 NSDictionary *bestVenue = [venues objectAtIndex:0];
                 
                 NSString *description;
                 NSString *location;
                 
                 if (bestVenue == nil) {
-                    NSLog(@"Best venue was null. Defaulting to somewhere.");
                     description = @"Somewhere?";
                     location = @"Couldn't get location.";
                 } else {
-                    NSLog(@"Best venue: %@", bestVenue);
                     location = [bestVenue objectForKey:@"name"];
                     NSDictionary *location_dict = [bestVenue objectForKey:@"location"];
                     description = [NSString stringWithFormat:@"%@, %@", [location_dict objectForKey:@"city"], [location_dict objectForKey:@"state"]];
@@ -335,11 +340,13 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
     
     NSString *request = [push objectForKey:@"request"];
     
+    // TODO: this is idioticly unoptimized
     if ([@"location" isEqualToString:request]) {
-        // We're going to present an action controller.
         [[NSNotificationCenter defaultCenter] postNotificationName:@"LocationRequest" object:nil userInfo:push];
     }
-    
+    if ([@"forget" isEqualToString:request]) {
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"ForgetRequest" object:nil userInfo:push];
+    }
     if ([@"acknowledge" isEqualToString:request]) {
         [[NSNotificationCenter defaultCenter] postNotificationName:@"AcknowledgeRequest" object:nil userInfo:push];
     }
@@ -355,21 +362,32 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
 
 static API *sharedAPI = nil;
 
-+ (id)sharedAPI {
++ (instancetype)sharedAPI {
     if (sharedAPI == nil) {
         NSLog(@"[API] Initializing API..........");
         sharedAPI = [[API alloc] init];
-        NSData *encodedObject = [[NSUserDefaults standardUserDefaults] objectForKey:@"current_user"];
-        if (encodedObject != nil) {
-            sharedAPI.this_user = (Friend *)[NSKeyedUnarchiver unarchiveObjectWithData:encodedObject];
-        }
     }
     
     return sharedAPI;
 }
 
 - (void)dealloc {
-    [[NSUserDefaults standardUserDefaults] setObject:[NSKeyedArchiver archivedDataWithRootObject:self.this_user] forKey:@"current_user"];
+    if (manager) {
+        manager.delegate = nil;
+        [manager stopUpdatingLocation];
+    }
+    
+    [self save];
+}
+
+- (void)save {
+    if (self.this_user) {
+        [[NSUserDefaults standardUserDefaults] setObject:[NSKeyedArchiver archivedDataWithRootObject:self.this_user] forKey:@"this_user"];
+    }
+    if (self.friends) {
+        [[NSUserDefaults standardUserDefaults] setObject:[NSKeyedArchiver archivedDataWithRootObject:self.friends] forKey:@"friends"];
+    }
+    
     [[NSUserDefaults standardUserDefaults] synchronize];
 }
 
@@ -398,6 +416,91 @@ static API *sharedAPI = nil;
     [errorAlert show];
     NSLog(@"Error: %@",error.description);
     
+}
+
+- (void)initLocations {
+    
+    NSLog(@"[API] Location services enabled?: %d", [CLLocationManager locationServicesEnabled]);
+    
+    // Create the location manager if this object does not
+    // already have one.
+    if (nil == manager) {
+        manager = [[CLLocationManager alloc] init];
+    }
+    
+    manager.delegate = self;
+    manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation;
+    
+    // Set a movement threshold for new events.
+    manager.distanceFilter = 100; // meters
+    
+    if ([manager respondsToSelector:@selector(requestAlwaysAuthorization)]){
+        [manager requestAlwaysAuthorization];
+    }
+    
+    [manager startUpdatingLocation];
+}
+
+- (void)startMonitoringRegion:(CLRegion *)region withLocationName:(NSString *)name area:(NSString *)area friends:(NSSet *)friends;
+ {
+     NSLog(@"Creating geofence for: %@", name);
+    
+    Checkin *checkin = [[Checkin alloc] initWithRegion:region location:name name:area friends:friends];
+    [self.checkins addObject:checkin];
+    if (manager != nil) {
+        [manager startMonitoringForRegion:region];
+    }
+}
+
+
+
+- (void)locationManager:(CLLocationManager *)manager
+didStartMonitoringForRegion:(CLRegion *)region {
+    NSLog(@"[API] Successfully started monitoring checkin!");
+}
+
+- (void)locationManager:(CLLocationManager *)manager
+monitoringDidFailForRegion:(CLRegion *)region
+              withError:(NSError *)error {
+    NSLog(@"[API] Couldn't monitor checkin - %@ - Removing..", [error localizedFailureReason]);
+    for (Checkin *checkin in self.checkins) {
+        if ([[checkin region] isEqual:region]) {
+            // remove
+            [self.checkins removeObject:checkin];
+            break;
+        }
+    }
+}
+
+
+- (void)locationManager:(CLLocationManager *)manager
+         didEnterRegion:(CLRegion *)region {
+    Checkin *current = nil;
+    for (Checkin *checkin in self.checkins) {
+        if ([[checkin region] isEqual:region]) {
+            current = checkin;
+            break;
+        }
+    }
+    
+    if (current != nil) {
+        [self shareLocationWithUsers:[current friends] completion:nil];
+    }
+}
+
+- (void)locationManager:(CLLocationManager *)manager
+          didExitRegion:(CLRegion *)region {
+    Checkin *current = nil;
+    for (Checkin *checkin in self.checkins) {
+        if ([[checkin region] isEqual:region]) {
+            current = checkin;
+            break;
+        }
+    }
+    
+    if (current != nil) {
+        [self shareLocationWithUsers:[current friends] completion:nil];
+    }
 }
 
 @end

@@ -89,6 +89,13 @@
                          
     [application registerUserNotificationSettings:notificationSettings];
     [application registerForRemoteNotifications];
+    
+    if ([launchOptions objectForKey: UIApplicationLaunchOptionsLocationKey] != nil) {
+        // this was started because of a boundary crossing. set up the manager to receive the notification.
+        [[API sharedAPI] initLocations];
+    }
+    
+    
     return YES;
 }
 

@@ -37,16 +37,15 @@
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(whereAtRequest:) name:@"WhereAtRequest" object:nil];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(locationRequest:) name:@"LocationRequest" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(forgetRequest:) name:@"ForgetRequest" object:nil];
+    
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(acknowledgeRequest:) name:@"AcknowledgeRequest" object:nil];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(locationAvailable:) name:@"LocationAvailable" object:nil];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(messageReceived:) name:@"MessageReceived" object:nil];
     
-    
-    
     self.navigationItem.title = @"Where are ü now";
-    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Add Friends" style:UIBarButtonItemStylePlain target:self action:@selector(addFriends:)];
     
     /* Check if we're logged in */
     if (![[API sharedAPI] isLoggedIn]) {
@@ -61,32 +60,9 @@
     [button setEnabled:NO];
     [button setBackgroundColor:[UIColor colorWithRed:5/255.0f green:26/255.0f blue:41/255.0f alpha:.46f]];
     
-    [self startStandardUpdates];
+    [[API sharedAPI] initLocations];
     
     [super viewDidLoad];
-}
-
-- (void)startStandardUpdates
-{
-    NSLog(@"[Main] Location services enabled?: %d", [CLLocationManager locationServicesEnabled]);
-    
-    // Create the location manager if this object does not
-    // already have one.
-    if (nil == manager) {
-        manager = [[CLLocationManager alloc] init];
-    }
-    
-    manager.delegate = [API sharedAPI];
-    manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation;
-    
-    // Set a movement threshold for new events.
-    manager.distanceFilter = 100; // meters
-    
-    if ([manager respondsToSelector:@selector(requestAlwaysAuthorization)]){
-        [manager requestAlwaysAuthorization];
-    }
-    
-    [manager startUpdatingLocation];
 }
 
 - (void)login {
@@ -126,7 +102,6 @@
 }
 
 - (void)whereAtRequest:(NSNotification *)friendRequest {
-    
     NSDictionary *info = [friendRequest userInfo];
     
     Friend *f = [[Friend alloc] initWithName:[info objectForKey:@"username"] fbId:[info objectForKey:@"facebookId"]];
@@ -137,7 +112,6 @@
 }
 
 - (void)acknowledgeRequest:(NSNotification *)pushNotification {
-    
     NSDictionary *userInfo = [pushNotification userInfo];
     
     // parse the information that we received
@@ -185,7 +159,7 @@
                     
                 }]];
                 
-                [controller addAction:[UIAlertAction actionWithTitle:@"Later" style:UIAlertActionStyleCancel handler:nil]];
+                [controller addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil]];
                 
                 
                 [self presentViewController:controller animated:YES completion:nil];
@@ -222,6 +196,10 @@
     NSString *text = [userInfo objectForKey:@"text"];
     
     UIAlertController *controller = [UIAlertController alertControllerWithTitle:name message:text preferredStyle:UIAlertControllerStyleAlert];
+    
+    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Okay" style:UIAlertActionStyleCancel handler:nil];
+    [controller addAction:cancelAction];
+    
     [self presentViewController:controller animated:YES completion:nil];
 }
 

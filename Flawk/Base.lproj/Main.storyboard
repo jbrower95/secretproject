@@ -117,6 +117,9 @@
                                 <state key="normal" title="Whenever I'm Here">
                                     <color key="titleColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                 </state>
+                                <connections>
+                                    <action selector="shareAlways:" destination="6zd-I4-DLZ" eventType="touchUpInside" id="Ppj-k6-fDc"/>
+                                </connections>
                             </button>
                         </subviews>
                         <animations/>

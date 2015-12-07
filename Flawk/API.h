@@ -8,6 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import "Friend.h" 
+#import "Checkin.h"
 
 FOUNDATION_EXPORT NSString *const API_REFRESH_FAILED_EVENT;
 FOUNDATION_EXPORT NSString *const API_REFRESH_SUCCESS_EVENT;
@@ -15,10 +16,14 @@ FOUNDATION_EXPORT NSString *const API_REFRESH_SUCCESS_EVENT;
 @interface API : NSObject <CLLocationManagerDelegate> {
     NSMutableArray *friends;
     Friend *this_user;
+    CLLocationManager *manager;
+    NSMutableSet<Checkin *> *checkins;
 }
 
+@property (nonatomic, retain) CLLocationManager *manager;
 @property (nonatomic, retain) NSMutableArray *friends;
 @property (nonatomic, retain) Friend *this_user;
+@property (nonatomic, retain) NSMutableSet<Checkin *> *checkins;
 
 /* Gets all friends from Facebook. */
 - (void)getAllFriendsWithBlock:(void(^)(NSArray *friends, NSError *error))block;
@@ -47,7 +52,7 @@ FOUNDATION_EXPORT NSString *const API_REFRESH_SUCCESS_EVENT;
 - (void)requestWhereAt:(Friend *)other;
 
 /* The shared API access */
-+ (id)sharedAPI;
++ (instancetype)sharedAPI;
 
 - (void)setLoggedInUser:(NSString *)name token:(NSString *)token;
 
@@ -62,7 +67,11 @@ FOUNDATION_EXPORT NSString *const API_REFRESH_SUCCESS_EVENT;
 
 - (void)shareLocationWithUsers:(NSSet *)users completion:(void (^)(BOOL))completionHandler;
 
+- (void)startMonitoringRegion:(CLRegion *)region withLocationName:(NSString *)name area:(NSString *)area friends:(NSSet *)friends;
+
 - (Friend *)currentUser;
+
+- (void)initLocations;
 @end
 
 

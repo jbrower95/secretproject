@@ -8,6 +8,7 @@
 
 #import "ShareLocationViewController.h"
 #import "API.h"
+#import <CoreLocation/CoreLocation.h>
 @interface ShareLocationViewController ()
 
 @end
@@ -56,7 +57,7 @@
         } else {
             [cell setAccessoryType:UITableViewCellAccessoryNone];
         }
-    } else {
+    } else {        
         Friend *friend = [[[API sharedAPI] friends] objectAtIndex:indexPath.row - 1];
     
         [[cell textLabel] setText:[friend name]];
@@ -116,6 +117,64 @@
             }
         }];
     }];
+}
+
+- (IBAction)shareAlways:(id)sender {
+    
+    if ([selections containsObject:@"ALL"]) {
+        [selections removeObject:@"ALL"];
+        for (Friend *pal in [[API sharedAPI] friends]) {
+            [selections addObject:[pal fbid]];
+        }
+    }
+    
+    switch ([CLLocationManager authorizationStatus]) {
+        case kCLAuthorizationStatusNotDetermined:
+        case kCLAuthorizationStatusAuthorizedWhenInUse:
+            [[[CLLocationManager alloc] init] requestAlwaysAuthorization];
+            return;
+        case kCLAuthorizationStatusAuthorizedAlways: {
+            // Ready 2 go
+            CLLocationCoordinate2D center = CLLocationCoordinate2DMake([[[API sharedAPI] this_user] lastLatitude], [[[API sharedAPI] this_user] lastLongitude]);
+            CLRegion *geofence = [[CLCircularRegion alloc]initWithCenter:center
+                                                                radius:100.0
+                                                            identifier:@"Bridge"];
+            
+            
+            [[API sharedAPI] getLocationAndAreaWithBlock:^{
+                [[API sharedAPI] shareLocationWithUsers:selections completion:^(BOOL success) {
+                    if (success) {
+                        // woah
+                        dispatch_async(dispatch_get_main_queue(), ^{
+                            [[API sharedAPI] startMonitoringRegion:geofence withLocationName:[[[API sharedAPI] this_user] lastKnownLocation] area:[[[API sharedAPI] this_user] lastKnownArea] friends:selections];
+                            
+                            [[self navigationController] popViewControllerAnimated:YES];
+                        });
+                    } else {
+                        dispatch_async(dispatch_get_main_queue(), ^{
+                            UIAlertController *controller = [UIAlertController alertControllerWithTitle:@"Error" message:@"Couldn't share to friends. Try again in a bit." preferredStyle:UIAlertControllerStyleAlert];
+                            [selections removeAllObjects];
+                            [self presentViewController:controller animated:YES completion:nil];
+                            [tableView reloadData];
+                        });
+                    }
+                }];
+            }];
+            
+            
+            
+            return;
+        }
+        case kCLAuthorizationStatusDenied:
+        case kCLAuthorizationStatusRestricted: {
+            UIAlertController *error = [UIAlertController alertControllerWithTitle:@"Error" message:@"This requires location services -- please enable them for Flawk in Settings!" preferredStyle:UIAlertControllerStyleAlert];
+            [error addAction:[UIAlertAction actionWithTitle:@"Okay" style:UIAlertActionStyleCancel handler:nil]];
+            [self presentViewController:error animated:YES completion:nil];
+            return;
+        }
+    }
+    
+    
 }
 
 /*
