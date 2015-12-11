@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import <CoreLocation/CoreLocation.h>
-@interface Checkin : NSObject <NSCoding> {
+@interface PersistentCheckin : NSObject <NSCoding> {
     CLRegion *region;
     NSString *location;
     NSString *name;

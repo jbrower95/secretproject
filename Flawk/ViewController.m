@@ -15,8 +15,9 @@
 #import "FriendLocationController.h"
 #import <FBSDKCoreKit/FBSDKCoreKit.h>
 #import <FBSDKLoginKit/FBSDKLoginKit.h>
-
 #import <FBSDKCoreKit/FBSDKConstants.h>
+
+#import <ParseFacebookUtilsV4/ParseFacebookUtilsV4.h>
 
 @interface ViewController ()
 
@@ -79,6 +80,11 @@
     if ([[[API sharedAPI] this_user] locationKnown]) {
         [self locationAvailable:nil];
     }
+    
+    [[API sharedAPI] getLocationAndAreaWithBlock:^{
+        NSString *location = [[API sharedAPI] this_user].lastKnownLocation;
+        NSString *area = [[API sharedAPI] this_user].lastKnownLocation;
+    }];
 }
 
 - (void)reloadTable:(id)sender {
@@ -102,40 +108,17 @@
 }
 
 - (void)login {
-    FBSDKLoginManager *login = [[FBSDKLoginManager alloc] init];
-    [login
-     logInWithReadPermissions: @[@"public_profile", @"email", @"user_friends"]
-     fromViewController:self
-     handler:^(FBSDKLoginManagerLoginResult *result, NSError *error) {
-         if (error != nil || result.isCancelled) {
-             NSLog(@"[Main] Cancelled");
-             dispatch_async(dispatch_get_main_queue(), ^{
-                 [self setCheckinDisabled];
-                 [self authorizeAgain];
-             });
-         } else {
-             NSLog(@"[Main] Logged in!");
-             NSLog(@"[Main] Loading info about current user...");
-             
-             FBSDKGraphRequest *request = [[FBSDKGraphRequest alloc] initWithGraphPath:@"me" parameters:@{@"fields" : @"name, email"}];
-             
-             [request startWithCompletionHandler:^(FBSDKGraphRequestConnection *connection, id result, NSError *error) {
-                  
-                  if (!error) {
-                      [[API sharedAPI] setLoggedInUser:result[@"name"] token:[[FBSDKAccessToken currentAccessToken] userID]];
-                      
-                      dispatch_async(dispatch_get_main_queue(), ^() {
-                          [self refreshSuccess:nil];
-                      });
-                  } else {
-                      dispatch_async(dispatch_get_main_queue(), ^() {
-                          [self refreshFailed:nil];
-                      });
-                  }
-              }];
-         }
-         
-     }];
+    [PFFacebookUtils logInInBackgroundWithReadPermissions:@[@"public_profile", @"email", @"user_friends"] block:^(PFUser * _Nullable user, NSError * _Nullable error) {
+        
+        NSLog(@"[Main] Cancelled");
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self setCheckinDisabled];
+            [self authorizeAgain];
+        });
+        
+        [[API sharedAPI] this_user].user = user;
+        [[API sharedAPI] loadExtendedUserInfoFromFacebook];
+    }];
 }
 
 - (void)whereAtRequest:(NSNotification *)friendRequest {

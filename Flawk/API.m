@@ -319,8 +319,17 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
             
             if (response != nil) {
                 NSArray *venues = (NSArray *)[(NSDictionary *)[response objectForKey:@"response"] objectForKey:@"venues"];
-                
+                NSLog(@"%@", response);
                 NSDictionary *bestVenue = [venues objectAtIndex:0];
+                float minDistance = -1;
+                for (NSDictionary *venue in venues) {
+                    float distance = [[[venue objectForKey:@"location"] objectForKey:@"distance"] floatValue];
+                    if (minDistance == -1 || distance < minDistance) {
+                        minDistance = distance;
+                        bestVenue = venue;
+                    }
+                }
+                
                 
                 NSString *description;
                 NSString *location;
@@ -513,7 +522,7 @@ static API *sharedAPI = nil;
         [manager requestAlwaysAuthorization];
     }
     
-    for (Checkin *checkin in self.checkins) {
+    for (PersistentCheckin *checkin in self.checkins) {
         [manager startMonitoringForRegion:[checkin region]];
     }
     
@@ -522,13 +531,25 @@ static API *sharedAPI = nil;
 
 - (void)startMonitoringRegion:(CLRegion *)region withLocationName:(NSString *)name area:(NSString *)area friends:(NSSet *)_friends;
  {
-    Checkin *checkin = [[Checkin alloc] initWithRegion:region location:name name:area friends:_friends];
+    PersistentCheckin *checkin = [[PersistentCheckin alloc] initWithRegion:region location:name name:area friends:_friends];
     [self.checkins addObject:checkin];
     if (manager != nil) {
         [manager startMonitoringForRegion:region];
     }
 }
 
+
+- (void)loadExtendedUserInfoFromFacebook {
+    
+    FBSDKGraphRequest *request = [[FBSDKGraphRequest alloc] initWithGraphPath:@"me" parameters:@{@"fields" : @"name, email"}];
+    
+    [request startWithCompletionHandler:^(FBSDKGraphRequestConnection *connection, id result, NSError *error) {
+        if (!error) {
+            [[API sharedAPI] setLoggedInUser:result[@"name"] token:[[FBSDKAccessToken currentAccessToken] userID]];
+        }
+    }];
+    
+}
 
 
 - (void)locationManager:(CLLocationManager *)manager
@@ -542,7 +563,7 @@ didStartMonitoringForRegion:(CLRegion *)region {
 monitoringDidFailForRegion:(CLRegion *)region
               withError:(NSError *)error {
     NSLog(@"[API] Couldn't monitor checkin - %@ - Removing..", [error localizedFailureReason]);
-    for (Checkin *checkin in self.checkins) {
+    for (PersistentCheckin *checkin in self.checkins) {
         if ([[checkin region] isEqual:region]) {
             // remove
             [self.checkins removeObject:checkin];
@@ -555,8 +576,8 @@ monitoringDidFailForRegion:(CLRegion *)region
 - (void)locationManager:(CLLocationManager *)manager
          didEnterRegion:(CLRegion *)region {
     NSLog(@"[API] [Location] Entered region!");
-    Checkin *current = nil;
-    for (Checkin *checkin in self.checkins) {
+    PersistentCheckin *current = nil;
+    for (PersistentCheckin *checkin in self.checkins) {
         if ([[checkin region] isEqual:region]) {
             current = checkin;
             break;
@@ -577,8 +598,8 @@ monitoringDidFailForRegion:(CLRegion *)region
           didExitRegion:(CLRegion *)region {
     NSLog(@"[API] [Location] Exited region!");
     
-    Checkin *current = nil;
-    for (Checkin *checkin in self.checkins) {
+    PersistentCheckin *current = nil;
+    for (PersistentCheckin *checkin in self.checkins) {
         if ([[checkin region] isEqual:region]) {
             current = checkin;
             break;

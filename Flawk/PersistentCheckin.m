@@ -6,9 +6,9 @@
 //  Copyright © 2015 Big Sweet Software Projects. All rights reserved.
 //
 
-#import "Checkin.h"
+#import "PersistentCheckin.h"
 
-@implementation Checkin
+@implementation PersistentCheckin
 
 @synthesize name, region, location;
 

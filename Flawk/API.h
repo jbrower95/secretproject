@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import "Friend.h" 
-#import "Checkin.h"
+#import "PersistentCheckin.h"
 
 FOUNDATION_EXPORT NSString *const API_REFRESH_FAILED_EVENT;
 FOUNDATION_EXPORT NSString *const API_REFRESH_SUCCESS_EVENT;
@@ -17,13 +17,13 @@ FOUNDATION_EXPORT NSString *const API_REFRESH_SUCCESS_EVENT;
     NSMutableArray<Friend *> *friends;
     Friend *this_user;
     CLLocationManager *manager;
-    NSMutableArray<Checkin *> *checkins;
+    NSMutableArray<PersistentCheckin *> *checkins;
 }
 
 @property (nonatomic, retain) CLLocationManager *manager;
 @property (nonatomic, retain) NSMutableArray *friends;
 @property (nonatomic, retain) Friend *this_user;
-@property (nonatomic, retain) NSMutableArray<Checkin *> *checkins;
+@property (nonatomic, retain) NSMutableArray<PersistentCheckin *> *checkins;
 
 /* Gets all friends from Facebook. */
 - (void)getAllFriendsWithBlock:(void(^)(NSArray *friends, NSError *error))block;
@@ -68,6 +68,8 @@ FOUNDATION_EXPORT NSString *const API_REFRESH_SUCCESS_EVENT;
 - (void)shareLocationWithUsers:(NSSet *)users completion:(void (^)(BOOL))completionHandler;
 
 - (void)startMonitoringRegion:(CLRegion *)region withLocationName:(NSString *)name area:(NSString *)area friends:(NSSet *)friends;
+
+- (void)loadExtendedUserInfoFromFacebook;
 
 - (Friend *)currentUser;
 

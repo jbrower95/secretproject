@@ -8,7 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		737A5B1586B78B2937680178 /* libPods-Flawk.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 75681DBF9636BCEEC48651FD /* libPods-Flawk.a */; };
-		D004281D1C1573C30056BB99 /* Checkin.m in Sources */ = {isa = PBXBuildFile; fileRef = D004281C1C1573C30056BB99 /* Checkin.m */; };
+		D004281D1C1573C30056BB99 /* PersistentCheckin.m in Sources */ = {isa = PBXBuildFile; fileRef = D004281C1C1573C30056BB99 /* PersistentCheckin.m */; };
 		D02EBC671C1397BD00D037CB /* ShareLocationViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D02EBC661C1397BD00D037CB /* ShareLocationViewController.m */; };
 		D038324A1C10ED320001BA79 /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D03832491C10ED320001BA79 /* CoreLocation.framework */; };
 		D038324D1C113C670001BA79 /* FriendLocationController.m in Sources */ = {isa = PBXBuildFile; fileRef = D038324C1C113C670001BA79 /* FriendLocationController.m */; };
@@ -46,8 +46,8 @@
 /* Begin PBXFileReference section */
 		75681DBF9636BCEEC48651FD /* libPods-Flawk.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Flawk.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		93BEB3F367D15B90075A28B0 /* Pods-Flawk.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Flawk.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Flawk/Pods-Flawk.debug.xcconfig"; sourceTree = "<group>"; };
-		D004281B1C1573C30056BB99 /* Checkin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Checkin.h; sourceTree = "<group>"; };
-		D004281C1C1573C30056BB99 /* Checkin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Checkin.m; sourceTree = "<group>"; };
+		D004281B1C1573C30056BB99 /* PersistentCheckin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PersistentCheckin.h; sourceTree = "<group>"; };
+		D004281C1C1573C30056BB99 /* PersistentCheckin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PersistentCheckin.m; sourceTree = "<group>"; };
 		D02EBC651C1397BD00D037CB /* ShareLocationViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ShareLocationViewController.h; sourceTree = "<group>"; };
 		D02EBC661C1397BD00D037CB /* ShareLocationViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ShareLocationViewController.m; sourceTree = "<group>"; };
 		D03832491C10ED320001BA79 /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
@@ -211,8 +211,8 @@
 				D0B6A6C21C0FC147007200E5 /* Friend.m */,
 				D0B6A6C41C0FC292007200E5 /* API.h */,
 				D0B6A6C51C0FC292007200E5 /* API.m */,
-				D004281B1C1573C30056BB99 /* Checkin.h */,
-				D004281C1C1573C30056BB99 /* Checkin.m */,
+				D004281B1C1573C30056BB99 /* PersistentCheckin.h */,
+				D004281C1C1573C30056BB99 /* PersistentCheckin.m */,
 			);
 			name = API;
 			sourceTree = "<group>";
@@ -420,7 +420,7 @@
 				D038324D1C113C670001BA79 /* FriendLocationController.m in Sources */,
 				D0B6A6C31C0FC147007200E5 /* Friend.m in Sources */,
 				D0B6A6C61C0FC292007200E5 /* API.m in Sources */,
-				D004281D1C1573C30056BB99 /* Checkin.m in Sources */,
+				D004281D1C1573C30056BB99 /* PersistentCheckin.m in Sources */,
 				D0B6A6CA1C0FC741007200E5 /* FriendCellTableViewCell.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
