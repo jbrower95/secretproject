@@ -128,7 +128,6 @@
 }
 
 - (IBAction)shareAlways:(id)sender {
-    
     if ([selections containsObject:@"ALL"]) {
         [selections removeObject:@"ALL"];
         for (Friend *pal in [[API sharedAPI] friends]) {

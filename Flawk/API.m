@@ -22,7 +22,7 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
     if (self = [super init]) {
         self.friends = [[NSMutableArray alloc] init];
         self.this_user = [[Friend alloc] init];
-        self.checkins = [[NSMutableSet alloc] init];
+        self.checkins = [[NSMutableArray alloc] init];
     }
     
     NSData *friendsData = [[NSUserDefaults standardUserDefaults] objectForKey:@"friends"];
@@ -32,6 +32,14 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
         self.friends = (NSMutableArray *)[NSKeyedUnarchiver unarchiveObjectWithData:friendsData];
     } else {
         NSLog(@"[API] Couldn't reload friends.");
+    }
+    
+    NSData *checkinsData = [[NSUserDefaults standardUserDefaults] objectForKey:@"checkins"];
+    if (checkinsData != nil) {
+        self.checkins = (NSMutableArray *)[NSKeyedUnarchiver unarchiveObjectWithData:checkinsData];
+        NSLog(@"[API] Reloaded %d checkins.", [self.checkins count]);
+    } else {
+        NSLog(@"[API] Couldn't reload checkins.");
     }
     
     NSData *userData = [[NSUserDefaults standardUserDefaults] objectForKey:@"this_user"];
@@ -427,6 +435,10 @@ static API *sharedAPI = nil;
         NSLog(@"[API] Saving friends...");
         [[NSUserDefaults standardUserDefaults] setObject:[NSKeyedArchiver archivedDataWithRootObject:self.friends] forKey:@"friends"];
     }
+    if (self.checkins) {
+        NSLog(@"[API] Saving checkins...");
+        [[NSUserDefaults standardUserDefaults] setObject:[NSKeyedArchiver archivedDataWithRootObject:self.checkins] forKey:@"checkins"];
+    }
     
     [[NSUserDefaults standardUserDefaults] synchronize];
 }
@@ -478,6 +490,10 @@ static API *sharedAPI = nil;
         [manager requestAlwaysAuthorization];
     }
     
+    for (Checkin *checkin in self.checkins) {
+        [manager startMonitoringForRegion:[checkin region]];
+    }
+    
     [manager startUpdatingLocation];
 }
 
@@ -495,6 +511,7 @@ static API *sharedAPI = nil;
 - (void)locationManager:(CLLocationManager *)manager
 didStartMonitoringForRegion:(CLRegion *)region {
     NSLog(@"[API] Successfully started monitoring checkin!");
+    [self save];
 }
 
 - (void)locationManager:(CLLocationManager *)manager

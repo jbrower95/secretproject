@@ -23,4 +23,23 @@
     return self;
 }
 
+- (void)encodeWithCoder:(NSCoder *)encoder {
+    //Encode properties, other class variables, etc
+    [encoder encodeObject:name forKey:@"name"];
+    [encoder encodeObject:region forKey:@"region"];
+    [encoder encodeObject:location forKey:@"location"];
+    [encoder encodeObject:friends forKey:@"friends"];
+}
+
+- (id)initWithCoder:(NSCoder *)decoder {
+    if((self = [super init])) {
+        //decode properties, other class vars
+        name = [decoder decodeObjectForKey:@"name"];
+        region = [decoder decodeObjectForKey:@"region"];
+        location = [decoder decodeObjectForKey:@"location"];
+        friends = [decoder decodeObjectForKey:@"lon"];
+    }
+    return self;
+}
+
 @end

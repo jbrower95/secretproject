@@ -14,16 +14,16 @@ FOUNDATION_EXPORT NSString *const API_REFRESH_FAILED_EVENT;
 FOUNDATION_EXPORT NSString *const API_REFRESH_SUCCESS_EVENT;
 
 @interface API : NSObject <CLLocationManagerDelegate> {
-    NSMutableArray *friends;
+    NSMutableArray<Friend *> *friends;
     Friend *this_user;
     CLLocationManager *manager;
-    NSMutableSet<Checkin *> *checkins;
+    NSMutableArray<Checkin *> *checkins;
 }
 
 @property (nonatomic, retain) CLLocationManager *manager;
 @property (nonatomic, retain) NSMutableArray *friends;
 @property (nonatomic, retain) Friend *this_user;
-@property (nonatomic, retain) NSMutableSet<Checkin *> *checkins;
+@property (nonatomic, retain) NSMutableArray<Checkin *> *checkins;
 
 /* Gets all friends from Facebook. */
 - (void)getAllFriendsWithBlock:(void(^)(NSArray *friends, NSError *error))block;
