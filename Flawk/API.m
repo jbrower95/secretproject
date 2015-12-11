@@ -37,7 +37,7 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
     NSData *checkinsData = [[NSUserDefaults standardUserDefaults] objectForKey:@"checkins"];
     if (checkinsData != nil) {
         self.checkins = (NSMutableArray *)[NSKeyedUnarchiver unarchiveObjectWithData:checkinsData];
-        NSLog(@"[API] Reloaded %d checkins.", [self.checkins count]);
+        NSLog(@"[API] Reloaded %lu checkins.", [self.checkins count]);
     } else {
         NSLog(@"[API] Couldn't reload checkins.");
     }
@@ -134,6 +134,29 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
         }
     }];
 }
+
+
+- (void)removeLocationFromUsers:(NSMutableArray *)users completionHandler:(void (^)())completionHandler {
+    
+    // sends a forGET request to the users.
+    PFPush *push = [PFPush push];
+    
+    PFQuery *query = [PFInstallation query];
+    [query whereKey:@"facebookId" containedIn:users];
+    
+    NSDictionary *data = @{@"request" : @"forget", @"from" : self.this_user.fbid, @"sound" : @"default", @"alert" : [NSString stringWithFormat:@"%@ checked out!", [self.this_user name]]};
+    
+    [push setData:data];
+    [push setQuery:query];
+    
+    [push sendPushInBackgroundWithBlock:^(BOOL succeeded, NSError * _Nullable error) {
+        if (!succeeded) {
+            NSLog(@"[API] Couldn't send FORGET requests in background.");
+        }
+        completionHandler();
+    }];
+}
+
 
 - (void)sendMessageToUser:(Friend *)user content:(NSString *)text completionHandler:(void (^)())completionHandler {
     PFPush *push = [PFPush push];
@@ -497,9 +520,9 @@ static API *sharedAPI = nil;
     [manager startUpdatingLocation];
 }
 
-- (void)startMonitoringRegion:(CLRegion *)region withLocationName:(NSString *)name area:(NSString *)area friends:(NSSet *)friends;
+- (void)startMonitoringRegion:(CLRegion *)region withLocationName:(NSString *)name area:(NSString *)area friends:(NSSet *)_friends;
  {
-    Checkin *checkin = [[Checkin alloc] initWithRegion:region location:name name:area friends:friends];
+    Checkin *checkin = [[Checkin alloc] initWithRegion:region location:name name:area friends:_friends];
     [self.checkins addObject:checkin];
     if (manager != nil) {
         [manager startMonitoringForRegion:region];
@@ -510,7 +533,8 @@ static API *sharedAPI = nil;
 
 - (void)locationManager:(CLLocationManager *)manager
 didStartMonitoringForRegion:(CLRegion *)region {
-    NSLog(@"[API] Successfully started monitoring checkin!");
+    CLCircularRegion *circle = (CLCircularRegion *)region;
+    NSLog(@"[API] Successfully started monitoring checkin!: %f, %f", [circle center].latitude, [circle center].longitude);
     [self save];
 }
 
@@ -530,6 +554,7 @@ monitoringDidFailForRegion:(CLRegion *)region
 
 - (void)locationManager:(CLLocationManager *)manager
          didEnterRegion:(CLRegion *)region {
+    NSLog(@"[API] [Location] Entered region!");
     Checkin *current = nil;
     for (Checkin *checkin in self.checkins) {
         if ([[checkin region] isEqual:region]) {
@@ -539,12 +564,19 @@ monitoringDidFailForRegion:(CLRegion *)region
     }
     
     if (current != nil) {
+        UILocalNotification *notification = [[UILocalNotification alloc] init];
+        [notification setAlertTitle:[NSString stringWithFormat:@"Checkin: %@!", [current location]]];
+        [notification setSoundName:UILocalNotificationDefaultSoundName];
+        [notification setFireDate:[NSDate date]];
+        [[UIApplication sharedApplication] scheduleLocalNotification:notification];
         [self shareLocationWithUsers:[current friends] completion:nil];
     }
 }
 
 - (void)locationManager:(CLLocationManager *)manager
           didExitRegion:(CLRegion *)region {
+    NSLog(@"[API] [Location] Exited region!");
+    
     Checkin *current = nil;
     for (Checkin *checkin in self.checkins) {
         if ([[checkin region] isEqual:region]) {
@@ -554,7 +586,12 @@ monitoringDidFailForRegion:(CLRegion *)region
     }
     
     if (current != nil) {
-        [self shareLocationWithUsers:[current friends] completion:nil];
+        UILocalNotification *notification = [[UILocalNotification alloc] init];
+        [notification setAlertTitle:[NSString stringWithFormat:@"Checkout: %@!", [current location]]];
+        [notification setSoundName:UILocalNotificationDefaultSoundName];
+        [notification setFireDate:[NSDate date]];
+        [[UIApplication sharedApplication] scheduleLocalNotification:notification];
+        [self removeLocationFromUsers:[current friends] completionHandler:nil];
     }
 }
 

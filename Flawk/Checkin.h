@@ -12,14 +12,14 @@
     CLRegion *region;
     NSString *location;
     NSString *name;
-    NSSet *friends;
+    NSMutableArray *friends;
 }
 
-- (id)initWithRegion:(CLRegion *)region location:(NSString *)location name:(NSString *)name friends:(NSSet *)friends;
+- (id)initWithRegion:(CLRegion *)region location:(NSString *)location name:(NSString *)name friends:(NSMutableArray *)friends;
 
 @property (nonatomic, retain) CLRegion *region;
 @property (nonatomic, retain) NSString *location;
 @property (nonatomic, retain) NSString *name;
-@property (nonatomic, retain) NSSet *friends;
+@property (nonatomic, retain) NSMutableArray *friends;
 
 @end

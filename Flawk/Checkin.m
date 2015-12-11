@@ -12,7 +12,7 @@
 
 @synthesize name, region, location;
 
-- (id)initWithRegion:(CLRegion *)_region location:(NSString *)_location name:(NSString *)_name friends:(NSSet *)friends {
+- (id)initWithRegion:(CLRegion *)_region location:(NSString *)_location name:(NSString *)_name friends:(NSMutableArray *)friends {
     if (self = [super init]) {
         self.name = _name;
         self.region = _region;
