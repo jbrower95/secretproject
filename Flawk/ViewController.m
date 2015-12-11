@@ -47,6 +47,11 @@
     
     self.navigationItem.title = @"Flawk";
     
+    refreshControl = [UIRefreshControl new];
+    [refreshControl addTarget:self action:@selector(reloadTable:) forControlEvents:UIControlEventValueChanged];
+    [tableView addSubview:refreshControl];
+    [tableView sendSubviewToBack:refreshControl];
+    
     [self setCheckinDisabled];
     [[API sharedAPI] initLocations];
     
@@ -74,6 +79,16 @@
     if ([[[API sharedAPI] this_user] locationKnown]) {
         [self locationAvailable:nil];
     }
+}
+
+- (void)reloadTable:(id)sender {
+    
+    [[API sharedAPI] getAllFriendsWithBlock:^(NSArray *friends, NSError *error) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [tableView reloadData];
+            [refreshControl endRefreshing];
+        });
+    }];
 }
 
 - (void)authorizeAgain {

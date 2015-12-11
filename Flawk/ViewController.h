@@ -16,6 +16,8 @@
     IBOutlet UIButton *button;
     
     CLLocationManager *manager;
+    
+    UIRefreshControl *refreshControl;
 }
 @property (nonatomic, strong) CLLocationManager *manager;
 

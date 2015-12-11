@@ -49,8 +49,11 @@
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"friendSelectionCell"];
     }
     
+    
     if (indexPath.row == 0) {
         [[cell textLabel] setText:@"Everyone"];
+        [[cell textLabel] setTextAlignment:NSTextAlignmentCenter];
+        [[cell textLabel] setFont:[UIFont systemFontOfSize:16]];
         
         if ([selections containsObject:@"ALL"]) {
             [cell setAccessoryType:UITableViewCellAccessoryCheckmark];
@@ -165,8 +168,6 @@
                     }
                 }];
             }];
-            
-            
             
             return;
         }
