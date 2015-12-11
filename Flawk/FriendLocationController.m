@@ -22,6 +22,8 @@
         person = aPerson;
     }
     
+    self.navigationItem.title = [person name];
+    
     return self;
 }
 

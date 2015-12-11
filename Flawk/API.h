@@ -71,6 +71,8 @@ FOUNDATION_EXPORT NSString *const API_REFRESH_SUCCESS_EVENT;
 
 - (Friend *)currentUser;
 
+- (void)save;
+
 - (void)initLocations;
 @end
 

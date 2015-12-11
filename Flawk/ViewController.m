@@ -45,7 +45,10 @@
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(messageReceived:) name:@"MessageReceived" object:nil];
     
-    self.navigationItem.title = @"Where are ü now";
+    self.navigationItem.title = @"Flawk";
+    
+    [self setCheckinDisabled];
+    [[API sharedAPI] initLocations];
     
     /* Check if we're logged in */
     if (![[API sharedAPI] isLoggedIn]) {
@@ -57,12 +60,30 @@
         [self loadAllFriends];
     }
     
+    [super viewDidLoad];
+}
+
+- (void)setCheckinDisabled {
     [button setEnabled:NO];
     [button setBackgroundColor:[UIColor colorWithRed:5/255.0f green:26/255.0f blue:41/255.0f alpha:.46f]];
+}
+
+- (void)viewDidAppear:(BOOL)animated {
+    [[API sharedAPI] getAllFriendsWithBlock:nil];
     
-    [[API sharedAPI] initLocations];
-    
-    [super viewDidLoad];
+    if ([[[API sharedAPI] this_user] locationKnown]) {
+        [self locationAvailable:nil];
+    }
+}
+
+- (void)authorizeAgain {
+    UIAlertController *controller = [UIAlertController alertControllerWithTitle:@"Authorization Required" message:@"Please login with Facebook to use Flawk!" preferredStyle:UIAlertControllerStyleAlert];
+    [controller addAction:[UIAlertAction actionWithTitle:@"Okay" style:UIAlertActionStyleDefault handler:nil]];
+    [self presentViewController:controller animated:YES completion:^{
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self performSelector:@selector(login) withObject:nil afterDelay:2.0];
+        });
+    }];
 }
 
 - (void)login {
@@ -71,14 +92,15 @@
      logInWithReadPermissions: @[@"public_profile", @"email", @"user_friends"]
      fromViewController:self
      handler:^(FBSDKLoginManagerLoginResult *result, NSError *error) {
-         if (error) {
-             NSLog(@"Process error");
-             NSLog(@"%@", [error localizedDescription]);
-         } else if (result.isCancelled) {
-             NSLog(@"Cancelled");
+         if (error != nil || result.isCancelled) {
+             NSLog(@"[Main] Cancelled");
+             dispatch_async(dispatch_get_main_queue(), ^{
+                 [self setCheckinDisabled];
+                 [self authorizeAgain];
+             });
          } else {
-             NSLog(@"Logged in");
-             NSLog(@"Getting name with graph request..");
+             NSLog(@"[Main] Logged in!");
+             NSLog(@"[Main] Loading info about current user...");
              
              FBSDKGraphRequest *request = [[FBSDKGraphRequest alloc] initWithGraphPath:@"me" parameters:@{@"fields" : @"name, email"}];
              
@@ -126,6 +148,7 @@
     for (Friend *friend in [[API sharedAPI] friends]) {
         if ([fbId isEqualToString:[friend fbid]]) {
             [friend setLastLocation:CGPointMake(lon, lat) place:location area:area];
+            [[API sharedAPI] save];
             break;
         }
     }
@@ -314,6 +337,7 @@
              NSIndexPath *indexPath = [tableView indexPathForSelectedRow];
              FriendLocationController *destViewController = segue.destinationViewController;
              destViewController.person = [[[API sharedAPI] friends] objectAtIndex:indexPath.row];
+            destViewController.navigationItem.title = [destViewController.person name];
             [tableView deselectRowAtIndexPath:indexPath animated:YES];
     }
 }

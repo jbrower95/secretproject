@@ -34,6 +34,7 @@
     [encoder encodeObject:_fbId forKey:@"fbId"];
     [encoder encodeFloat:lastLatitude forKey:@"lat"];
     [encoder encodeFloat:lastlongitude forKey:@"lon"];
+    [encoder encodeFloat:lastTimestamp forKey:@"timestamp"];
     [encoder encodeObject:lastKnownArea forKey:@"area"];
     [encoder encodeObject:lastKnownLocation forKey:@"location"];
 }
@@ -46,6 +47,7 @@
         lastLatitude = [decoder decodeFloatForKey:@"lat"];
         lastlongitude = [decoder decodeFloatForKey:@"lon"];
         lastKnownArea = [decoder decodeObjectForKey:@"area"];
+        lastTimestamp = [decoder decodeFloatForKey:@"timestamp"];
         lastKnownLocation = [decoder decodeObjectForKey:@"location"];
     }
     return self;

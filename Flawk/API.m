@@ -28,7 +28,10 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
     NSData *friendsData = [[NSUserDefaults standardUserDefaults] objectForKey:@"friends"];
     
     if (friendsData != nil) {
+        NSLog(@"[API] Reloading saved friends...");
         self.friends = (NSMutableArray *)[NSKeyedUnarchiver unarchiveObjectWithData:friendsData];
+    } else {
+        NSLog(@"[API] Couldn't reload friends.");
     }
     
     NSData *userData = [[NSUserDefaults standardUserDefaults] objectForKey:@"this_user"];
@@ -56,7 +59,10 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
             if (newFriends != nil) {
                 NSLog(@"Parsing friends.");
                 [[API sharedAPI] parseFriends:newFriends];
-                block(self.friends, nil);
+                if (block != nil) {
+                    [self save];
+                    block(self.friends, nil);
+                }
             } else {
                 NSLog(@"No friends from Facebook.");
             }
@@ -66,7 +72,9 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
             if ([error code] == FBSDKGraphRequestGraphAPIErrorCode) {
                 NSLog(@"Experienced an error with the graph api.");
                 NSLog(@"%@", [[error userInfo] objectForKey:FBSDKGraphRequestErrorParsedJSONResponseKey]);
-                block([NSArray array], error);
+                if (block != nil) {
+                    block([NSArray array], error);
+                }
             }
             
             NSLog(@"%@", [error localizedDescription]);
@@ -161,7 +169,7 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
     PFQuery *query = [PFInstallation query];
     [query whereKey:@"facebookId" equalTo:[user fbid]];
     
-    NSDictionary *data = @{@"request" : @"acknowledge", @"location" : [self.this_user lastKnownLocation], @"area" : [self.this_user lastKnownArea], @"lon" : [NSString stringWithFormat:@"%f", lon], @"lat" : [NSString stringWithFormat:@"%f", lat], @"from" : self.this_user.fbid, @"sound" : @"default"};
+    NSDictionary *data = @{@"request" : @"acknowledge", @"location" : [self.this_user lastKnownLocation], @"area" : [self.this_user lastKnownArea], @"lon" : [NSString stringWithFormat:@"%f", lon], @"lat" : [NSString stringWithFormat:@"%f", lat], @"from" : self.this_user.fbid, @"sound" : @"default", @"alert" : [NSString stringWithFormat:@"%@ shared their location!", [[API sharedAPI] this_user].name]};
     
     [push setQuery:query];
     [push setData:data];
@@ -210,11 +218,41 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
 }
 
 - (void)parseFriends:(NSArray *)f {
-    [self.friends removeAllObjects];
+    NSMutableArray *newFriends = [NSMutableArray array];
     for (NSDictionary *dict in f) {
         Friend *friend = [[Friend alloc] initWithFacebookDict:dict];
-        [self.friends addObject:friend];
+        [newFriends addObject:friend];
+        // If this ends up being set to YES, we updated an existing friend.
+        BOOL contains = NO;
+        
+        for (Friend *f in self.friends) {
+            if ([[f  fbid] isEqualToString:[friend fbid]]) {
+                [f setName:[friend name]];
+                contains = YES;
+                break;
+            }
+        }
+        
+        if (!contains) {
+            [self.friends addObject:friend];
+        }
     }
+    
+    NSMutableArray *toRemove = [NSMutableArray array];
+    
+    for (Friend *f in self.friends) {
+        BOOL shouldRemove = YES;
+        for (Friend *f_2 in newFriends) {
+            if ([[f_2 fbid] isEqualToString:[f fbid]]){
+                shouldRemove = NO;
+            }
+        }
+        if (shouldRemove) {
+            [toRemove addObject:f];
+        }
+    }
+    
+    [self.friends removeObjectsInArray:toRemove];
 }
 
 - (void)getLocationAndAreaWithBlock:(void (^)())completion {
@@ -383,8 +421,10 @@ static API *sharedAPI = nil;
 - (void)save {
     if (self.this_user) {
         [[NSUserDefaults standardUserDefaults] setObject:[NSKeyedArchiver archivedDataWithRootObject:self.this_user] forKey:@"this_user"];
+        NSLog(@"[API] Saving current user...");
     }
     if (self.friends) {
+        NSLog(@"[API] Saving friends...");
         [[NSUserDefaults standardUserDefaults] setObject:[NSKeyedArchiver archivedDataWithRootObject:self.friends] forKey:@"friends"];
     }
     
@@ -443,8 +483,6 @@ static API *sharedAPI = nil;
 
 - (void)startMonitoringRegion:(CLRegion *)region withLocationName:(NSString *)name area:(NSString *)area friends:(NSSet *)friends;
  {
-     NSLog(@"Creating geofence for: %@", name);
-    
     Checkin *checkin = [[Checkin alloc] initWithRegion:region location:name name:area friends:friends];
     [self.checkins addObject:checkin];
     if (manager != nil) {

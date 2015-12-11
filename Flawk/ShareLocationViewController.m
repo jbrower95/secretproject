@@ -93,6 +93,11 @@
 
 - (IBAction)shareOnce:(id)sender {
     
+    if (selections == nil || [selections count] == 0) {
+        // Nothing
+        return;
+    }
+    
     if ([selections containsObject:@"ALL"]) {
         [selections removeObject:@"ALL"];
         for (Friend *pal in [[API sharedAPI] friends]) {
