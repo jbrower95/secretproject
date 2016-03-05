@@ -7,10 +7,10 @@
 //
 
 #import "AppDelegate.h"
-#import <FBSDKCoreKit/FBSDKCoreKit.h>
-#import <Parse/Parse.h>
-#import <ParseFacebookUtilsV4/PFFacebookUtils.h>
 #import "API.h"
+#import <FBSDKCoreKit/FBSDKCoreKit.h>
+#import <FBSDKLoginKit/FBSDKLoginKit.h>
+
 
 @interface AppDelegate ()
 
@@ -19,13 +19,6 @@
 @implementation AppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
-    [[FBSDKApplicationDelegate sharedInstance] application:application
-                             didFinishLaunchingWithOptions:launchOptions];
-    [Parse setApplicationId:@"gWEenk0TPTnbU18Ug0SpyAXR2Omh5Jk57wvAgI8M"
-                  clientKey:@"W7vgDEUea8r184Ptyt9vbx7C9wfD5WXq7M1Rmo0z"];
-    [PFFacebookUtils initializeFacebookWithApplicationLaunchOptions:launchOptions];
-    PFInstallation *installation = [PFInstallation currentInstallation];
-    [installation saveEventually];
     
     
     UIMutableUserNotificationAction *sendLocationAction =
@@ -95,15 +88,13 @@
         [[API sharedAPI] initLocations];
     }
     
-    
-    return YES;
+    return [[FBSDKApplicationDelegate sharedInstance] application:application
+                                    didFinishLaunchingWithOptions:launchOptions];
 }
 
 - (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
     // Store the deviceToken in the current Installation and save it to Parse
-    PFInstallation *currentInstallation = [PFInstallation currentInstallation];
-    [currentInstallation setDeviceTokenFromData:deviceToken];
-    [currentInstallation saveInBackground];
+    
 }
 
 
@@ -135,12 +126,11 @@ forRemoteNotification:(NSDictionary *)userInfo withResponseInfo:(NSDictionary *)
     return [[FBSDKApplicationDelegate sharedInstance] application:application
                                                           openURL:url
                                                 sourceApplication:sourceApplication
-                                                       annotation:annotation
-            ];
+                                                       annotation:annotation];
 }
 
 - (void)applicationDidBecomeActive:(UIApplication *)application {
-    [FBSDKAppEvents activateApp];
+     [FBSDKAppEvents activateApp];
 }
 
 - (void)applicationWillResignActive:(UIApplication *)application {

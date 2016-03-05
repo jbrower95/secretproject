@@ -13,11 +13,7 @@
 #import "Friend.h"
 #import "FriendCellTableViewCell.h"
 #import "FriendLocationController.h"
-#import <FBSDKCoreKit/FBSDKCoreKit.h>
-#import <FBSDKLoginKit/FBSDKLoginKit.h>
-#import <FBSDKCoreKit/FBSDKConstants.h>
-
-#import <ParseFacebookUtilsV4/ParseFacebookUtilsV4.h>
+#import "FeatureConfig.h"
 
 @interface ViewController ()
 
@@ -41,9 +37,7 @@
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(forgetRequest:) name:@"ForgetRequest" object:nil];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(acknowledgeRequest:) name:@"AcknowledgeRequest" object:nil];
-    
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(locationAvailable:) name:@"LocationAvailable" object:nil];
-    
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(messageReceived:) name:@"MessageReceived" object:nil];
     
     self.navigationItem.title = @"Flawk";
@@ -56,13 +50,15 @@
     [self setCheckinDisabled];
     [[API sharedAPI] initLocations];
     
+    friends = [[NSMutableArray alloc] init];
+    
     /* Check if we're logged in */
     if (![[API sharedAPI] isLoggedIn]) {
         NSLog(@"Attempting to log in user...");
         [self login];
     } else {
         NSLog(@"User is logged in already!");
-        [[API sharedAPI] refreshFacebookLogin];
+        [[API sharedAPI] loadExtendedUserInfoFromFacebook];
         [self loadAllFriends];
     }
     
@@ -71,10 +67,11 @@
 
 - (void)setCheckinDisabled {
     [button setEnabled:NO];
-    [button setBackgroundColor:[UIColor colorWithRed:5/255.0f green:26/255.0f blue:41/255.0f alpha:.46f]];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
+    
+    [refreshControl endRefreshing];
     [[API sharedAPI] getAllFriendsWithBlock:nil];
     
     if ([[[API sharedAPI] this_user] locationKnown]) {
@@ -88,13 +85,7 @@
 }
 
 - (void)reloadTable:(id)sender {
-    
-    [[API sharedAPI] getAllFriendsWithBlock:^(NSArray *friends, NSError *error) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [tableView reloadData];
-            [refreshControl endRefreshing];
-        });
-    }];
+    [self loadAllFriends];
 }
 
 - (void)authorizeAgain {
@@ -108,17 +99,7 @@
 }
 
 - (void)login {
-    [PFFacebookUtils logInInBackgroundWithReadPermissions:@[@"public_profile", @"email", @"user_friends"] block:^(PFUser * _Nullable user, NSError * _Nullable error) {
-        
-        NSLog(@"[Main] Cancelled");
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [self setCheckinDisabled];
-            [self authorizeAgain];
-        });
-        
-        [[API sharedAPI] this_user].user = user;
-        [[API sharedAPI] loadExtendedUserInfoFromFacebook];
-    }];
+    [[API sharedAPI] login];
 }
 
 - (void)whereAtRequest:(NSNotification *)friendRequest {
@@ -187,16 +168,32 @@
             }
         }
         
-    }
-    
+    }    
 }
 
+- (IBAction)addFriends:(id)sender {
+    
+    [FeatureConfig featureEnabled:kFeatureAddFriends callback:^(BOOL enabled) {
+        if (enabled) {
+            [self performSegueWithIdentifier:@"AddFriendsSegue" sender:self];
+        } else {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                NSLog(@"Add friends not enabled!");
+                UIAlertController *c = [UIAlertController alertControllerWithTitle:@"Error" message:@"Feature unavailable." preferredStyle:UIAlertControllerStyleAlert];
+                [c addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
+                    [self dismissViewControllerAnimated:YES completion:nil];
+                }]];
+                [self presentViewController:c animated:YES completion:nil];
+            });
+        }
+    }];
+    
+}
 
 - (void)locationAvailable:(NSNotification *)notification {
     NSLog(@"Location available! Enabling checkin.");
     [button setEnabled:YES];
     [UIView animateWithDuration:2.0 animations:^{
-        [button setBackgroundColor:[UIColor colorWithRed:31/255.0f green:140/255.0f blue:220/255.0f alpha:1]];
     }];
 }
 
@@ -231,20 +228,8 @@
 }
 
 - (void)refreshSuccess:(NSNotification *)notification {
-    NSSet *declinedPermissions = [[FBSDKAccessToken currentAccessToken] declinedPermissions];
-    
-    if ([declinedPermissions count] > 0) {
-        NSLog(@"Error -- User declined permissions. App won't work properly. ");
-        // TODO: Show some UI for this.
-    }
-    
-    NSSet *permissions = [[FBSDKAccessToken currentAccessToken] permissions];
-    
-    /* Make yourself a parse account if you don't already have one */
     [[API sharedAPI] initParse];
-    
     [self loadAllFriends];
-    
 }
 
 - (void)loadAllFriends {
@@ -255,10 +240,26 @@
         
         NSLog(@"Got %lu friends.", (unsigned long)[receivedFriends count]);
         
-        dispatch_async(dispatch_get_main_queue(), ^() {
-            [tableView reloadData];
-        });
+        NSMutableArray *newFriends = [[NSMutableArray alloc] init];
         
+        Firebase *friendsDb = [[[[[API sharedAPI] firebase] childByAppendingPath:@"users"] childByAppendingPath:[[API sharedAPI] firebase].authData.uid] childByAppendingPath:@"friends"];
+        
+        [friendsDb observeSingleEventOfType:FEventTypeValue withBlock:^(FDataSnapshot *snapshot) {
+            if (snapshot.exists) {
+                for (Friend *f in receivedFriends) {
+                    if ([snapshot hasChild:[f fbid]]) {
+                        [newFriends addObject:f];
+                    }
+                }
+            }
+            
+            // Assign new friends.
+            friends = newFriends;
+            dispatch_async(dispatch_get_main_queue(), ^() {
+                [tableView reloadData];
+                [refreshControl endRefreshing];
+            });
+        }];
     }];
 }
 
@@ -280,12 +281,6 @@
     
 }
 
-- (IBAction)addFriends:(id)sender {
-         
-    NSLog(@"Ayy");
-}
-
-
 - (IBAction)checkin:(id)sender {
     [self performSegueWithIdentifier:@"ShareLocationSegue" sender:nil];
 }
@@ -299,14 +294,14 @@
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     
-    FriendCellTableViewCell *cell = (FriendCellTableViewCell *)[tableView dequeueReusableCellWithIdentifier:@"FriendCell"];
+    FriendCellTableViewCell *cell = (FriendCellTableViewCell *)[tableView dequeueReusableCellWithIdentifier:@"LocationKnownCell"];
     
     if (cell == nil) {
         cell = [[FriendCellTableViewCell alloc] init];
     }
     
     /* Apply friend to cell */
-    Friend *friend = [[[API sharedAPI] friends] objectAtIndex:indexPath.row];
+    Friend *friend = [friends objectAtIndex:indexPath.row];
     if (friend != nil) {
         // apply them
         [cell applyFriend:friend];
@@ -316,14 +311,14 @@
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return [[[API sharedAPI] friends] count];
+    return [friends count];
 }
 
 - (void)tableView:(UITableView *)table didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     
     NSString *segue = @"FriendLocationSegue";
     
-    Friend *f = [[[API sharedAPI] friends] objectAtIndex:indexPath.row];
+    Friend *f = [friends objectAtIndex:indexPath.row];
     
     if ([f locationKnown]) {
         [self performSegueWithIdentifier:segue sender:self];

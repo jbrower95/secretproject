@@ -8,23 +8,26 @@
 
 #import "API.h"
 #import "Friend.h"
+#import <FBSDKLoginKit/FBSDKLoginKit.h>
 #import <FBSDKCoreKit/FBSDKCoreKit.h>
-#import <ParseFacebookUtilsV4/ParseFacebookUtilsV4.h>
 
 NSString *const API_REFRESH_FAILED_EVENT = @"APIRefreshFailedEvent";
 NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
 
 @implementation API
 
-@synthesize friends, this_user, checkins;
+@synthesize manager; 
+
+@synthesize friends, this_user, checkins, firebase;
 
 - (id)init {
     if (self = [super init]) {
         self.friends = [[NSMutableArray alloc] init];
         self.this_user = [[Friend alloc] init];
         self.checkins = [[NSMutableArray alloc] init];
+        self.firebase = [[Firebase alloc] initWithUrl:@"https://flawkdb.firebaseio.com"];
     }
-    
+
     NSData *friendsData = [[NSUserDefaults standardUserDefaults] objectForKey:@"friends"];
     
     if (friendsData != nil) {
@@ -91,7 +94,7 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
 }
 
 - (BOOL)isLoggedIn {
-    return [FBSDKAccessToken currentAccessToken] != nil;
+    return [FBSDKAccessToken currentAccessToken] != nil && [self.firebase authData] != nil;
 }
 
 /* Checks into a place. */
@@ -113,66 +116,19 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
     CGFloat lon = [self.this_user lastLongitude];
     CGFloat lat = [self.this_user lastLatitude];
     
-    PFPush *push = [PFPush push];
-    
-    PFQuery *query = [PFInstallation query];
-    [query whereKey:@"facebookId" equalTo:[user fbid]];
-    
-    NSString *message = [NSString stringWithFormat:@"%@ shared their location!", [[[API sharedAPI] this_user] name]];
-    
-    NSDictionary *data = @{@"request" : @"acknowledge", @"location" : [self.this_user lastKnownLocation], @"area" : [self.this_user lastKnownArea], @"lon" : [NSString stringWithFormat:@"%f", lon], @"lat" : [NSString stringWithFormat:@"%f", lat], @"from" : self.this_user.fbid, @"alert" : message, @"sound" : @"default"};
-    
-    [push setQuery:query];
-    [push setData:data];
-    
-    // Send push.
-    [push sendPushInBackgroundWithBlock:^(BOOL succeeded, NSError * _Nullable error) {
-        if (succeeded) {
-            NSLog(@"[API] Successfully shared location with user: %@ %@", [user name], [user fbid]);
-        } else {
-            NSLog(@"[API] Failed to share location: %@", [error localizedFailureReason]);
-        }
-    }];
+    // TODO: Share our location with the user:
 }
 
 
 - (void)removeLocationFromUsers:(NSMutableArray *)users completionHandler:(void (^)())completionHandler {
     
-    // sends a forGET request to the users.
-    PFPush *push = [PFPush push];
-    
-    PFQuery *query = [PFInstallation query];
-    [query whereKey:@"facebookId" containedIn:users];
-    
-    NSDictionary *data = @{@"request" : @"forget", @"from" : self.this_user.fbid, @"sound" : @"default", @"alert" : [NSString stringWithFormat:@"%@ checked out!", [self.this_user name]]};
-    
-    [push setData:data];
-    [push setQuery:query];
-    
-    [push sendPushInBackgroundWithBlock:^(BOOL succeeded, NSError * _Nullable error) {
-        if (!succeeded) {
-            NSLog(@"[API] Couldn't send FORGET requests in background.");
-        }
-        completionHandler();
-    }];
+    // TODO: Invalidate our location from users.
 }
 
 
 - (void)sendMessageToUser:(Friend *)user content:(NSString *)text completionHandler:(void (^)())completionHandler {
-    PFPush *push = [PFPush push];
     
-    PFQuery *query = [PFInstallation query];
-    [query whereKey:@"facebookId" equalTo:[user fbid]];
-    
-    NSDictionary *data = @{@"request" : @"message", @"from" : self.this_user.fbid, @"sound" : @"default", @"text" : text, @"alert" : [NSString stringWithFormat:@"%@: %@", [[[API sharedAPI] this_user] name], text]};
-    [push setData:data];
-    [push setQuery:query];
-    [push sendPushInBackgroundWithBlock:^(BOOL succeeded, NSError * _Nullable error) {
-        if (!succeeded) {
-            NSLog(@"[API] Couldn't send message in background.");
-        }
-        completionHandler();
-    }];
+    // TODO: Send a message to one of our users.
 }
 
 - (void)shareLocationWithUsers:(NSMutableSet *)users completion:(void (^)(BOOL))completionHandler {
@@ -195,57 +151,31 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
     CGFloat lon = [self.this_user lastLongitude];
     CGFloat lat = [self.this_user lastLatitude];
     
-    PFPush *push = [PFPush push];
-    
-    PFQuery *query = [PFInstallation query];
-    [query whereKey:@"facebookId" equalTo:[user fbid]];
-    
-    NSDictionary *data = @{@"request" : @"acknowledge", @"location" : [self.this_user lastKnownLocation], @"area" : [self.this_user lastKnownArea], @"lon" : [NSString stringWithFormat:@"%f", lon], @"lat" : [NSString stringWithFormat:@"%f", lat], @"from" : self.this_user.fbid, @"sound" : @"default", @"alert" : [NSString stringWithFormat:@"%@ shared their location!", [[API sharedAPI] this_user].name]};
-    
-    [push setQuery:query];
-    [push setData:data];
-    
-    // Send push.
-    [push sendPushInBackgroundWithBlock:^(BOOL succeeded, NSError * _Nullable error) {
-        if (succeeded) {
-            NSLog(@"[API] Successfully shared location!");
-        } else {
-            NSLog(@"[API] Failed to share location: %@", [error localizedFailureReason]);
-        }
-        completionHandler();
-    }];
 }
 
 
-- (void)refreshFacebookLogin {
-    [FBSDKAccessToken refreshCurrentAccessToken:^(FBSDKGraphRequestConnection *connection, id result, NSError *error) {
-        
-        if (error != nil) {
-            NSLog(@"[API] Critical -- Could not refresh Facebook login.");
-            [[NSNotificationCenter defaultCenter] postNotificationName:API_REFRESH_FAILED_EVENT object:self];
-        } else {
-            // Success -- tell no one anything.
-            FBSDKGraphRequest *request = [[FBSDKGraphRequest alloc] initWithGraphPath:@"me" parameters:@{@"fields" : @"name, email"}];
-            
-            [request startWithCompletionHandler:^(FBSDKGraphRequestConnection *connection, id result, NSError *error) {
-                if (!error) {
-                    NSLog(@"[API] Refreshed token successfully.");
-                    [[API sharedAPI] setLoggedInUser:result[@"name"] token:[[FBSDKAccessToken currentAccessToken] userID]];
-                    
-                    dispatch_async(dispatch_get_main_queue(), ^() {
-                        [[NSNotificationCenter defaultCenter] postNotificationName:API_REFRESH_SUCCESS_EVENT object:self];
-                    });
-                } else {
-                    dispatch_async(dispatch_get_main_queue(), ^() {
-                        [[NSNotificationCenter defaultCenter] postNotificationName:API_REFRESH_FAILED_EVENT object:self];
-                    });
-                }
-            }];
-            
-            
-        }
-        
-    }];
+- (void)login {
+    FBSDKLoginManager *facebookLogin = [[FBSDKLoginManager alloc] init];
+    [facebookLogin logInWithReadPermissions:@[@"email"]
+                                    handler:^(FBSDKLoginManagerLoginResult *facebookResult, NSError *facebookError) {
+                                        if (facebookError) {
+                                            NSLog(@"[API] Facebook login failed. Error: %@", facebookError);
+                                        } else if (facebookResult.isCancelled) {
+                                            NSLog(@"[API] Facebook login got cancelled.");
+                                        } else {
+                                            NSString *accessToken = [[FBSDKAccessToken currentAccessToken] tokenString];
+                                            [self.firebase authWithOAuthProvider:@"facebook" token:accessToken
+                                                   withCompletionBlock:^(NSError *error, FAuthData *authData) {
+                                                       if (error) {
+                                                           NSLog(@"[API] Login failed. %@", error);
+                                                       } else {
+                                                           NSLog(@"[API] Logged in! %@", authData);
+                                                           [self loadExtendedUserInfoFromFacebook];
+                                                       }
+                                                   }];
+                                        }
+                                    }];
+    
 }
 
 - (void)parseFriends:(NSArray *)f {
@@ -302,9 +232,6 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
     
     NSString *venueURL = [NSString stringWithFormat:@"https://api.foursquare.com/v2/venues/search?ll=%.9f,%.9f&limit=5&intent=checkin&radius=%d&client_id=%@&client_secret=%@&v=20151203&m=foursquare", [me lastLatitude], [me lastLongitude], radius, client_id, client_sec];
     
-    NSLog(@"Hitting venue url:");
-    NSLog(@"%@", venueURL);
-    
     NSURLSession *session =
     [NSURLSession sessionWithConfiguration:sessionConfig
                                   delegate:self
@@ -319,7 +246,6 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
             
             if (response != nil) {
                 NSArray *venues = (NSArray *)[(NSDictionary *)[response objectForKey:@"response"] objectForKey:@"venues"];
-                NSLog(@"%@", response);
                 NSDictionary *bestVenue = [venues objectAtIndex:0];
                 float minDistance = -1;
                 for (NSDictionary *venue in venues) {
@@ -362,50 +288,12 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
 
 - (void)initParse {
     
-    FBSDKAccessToken *token = [FBSDKAccessToken currentAccessToken];
-    
-    if (token == nil) {
-        NSLog(@"[API] Couldn't initialize Parse -- token was nil.");
-        return;
-    }
-    
-    [PFFacebookUtils logInInBackgroundWithAccessToken:token block:^(PFUser * _Nullable user, NSError * _Nullable error) {
-        
-        if (error != nil) {
-            NSLog(@"Error signing in: %@", [error localizedFailureReason]);
-            [[NSNotificationCenter defaultCenter] postNotificationName:@"ParseFailure" object:self];
-        } else {
-            [[NSNotificationCenter defaultCenter] postNotificationName:@"ParseSuccess" object:self];
-            
-            PFInstallation *currentInstallation = [PFInstallation currentInstallation];
-            [currentInstallation setObject:[token userID] forKey:@"facebookId"];
-            [currentInstallation saveInBackgroundWithBlock:^(BOOL succeeded, NSError * _Nullable error) {
-                if (error == nil) {
-                    NSLog(@"[API] Successfully configured installation..");
-                } else {
-                    NSLog(@"[API] Failed to configure installation. - %@", [error localizedFailureReason]);
-                }
-            }];
-        }
-    }];
     
 }
 
 - (void)requestWhereAt:(Friend *)other {
-    PFQuery *query = [PFInstallation query];
-    [query whereKey:@"facebookId" equalTo:[other fbid]];
-    PFPush *push = [PFPush push];
-    [push setQuery:query];
     
-    NSString *message = [NSString stringWithFormat:@"%@: where you @?", [self.this_user name]];
-    [push setData:@{@"request" : @"location", @"from" : [self.this_user fbid], @"alert" : message, @"category" : @"REQUEST_LOCATION_CATEGORY", @"sound" : @"default"}];
-    [push sendPushInBackgroundWithBlock:^(BOOL succeeded, NSError * _Nullable error) {
-        if (!succeeded) {
-            NSLog(@"[API] Error: Didn't succeed sending push - %@", [error localizedDescription]);
-        } else {
-            NSLog(@"[API] Sent request for location! %@", [error localizedDescription]);
-        }
-    }];
+    // TODO: Send a request to the other user asking them where they are.
 }
 
 - (void)setLoggedInUser:(NSString *)name token:(NSString *)token {
@@ -529,28 +417,23 @@ static API *sharedAPI = nil;
     [manager startUpdatingLocation];
 }
 
-- (void)startMonitoringRegion:(CLRegion *)region withLocationName:(NSString *)name area:(NSString *)area friends:(NSSet *)_friends;
- {
+- (void)startMonitoringRegion:(CLRegion *)region withLocationName:(NSString *)name area:(NSString *)area friends:(NSSet *)_friends {
     PersistentCheckin *checkin = [[PersistentCheckin alloc] initWithRegion:region location:name name:area friends:_friends];
     [self.checkins addObject:checkin];
     if (manager != nil) {
         [manager startMonitoringForRegion:region];
     }
+    [checkin markActive];
 }
-
 
 - (void)loadExtendedUserInfoFromFacebook {
-    
     FBSDKGraphRequest *request = [[FBSDKGraphRequest alloc] initWithGraphPath:@"me" parameters:@{@"fields" : @"name, email"}];
-    
     [request startWithCompletionHandler:^(FBSDKGraphRequestConnection *connection, id result, NSError *error) {
         if (!error) {
-            [[API sharedAPI] setLoggedInUser:result[@"name"] token:[[FBSDKAccessToken currentAccessToken] userID]];
+            [[API sharedAPI] setLoggedInUser:result[@"name"] token:result[@"id"]];
         }
     }];
-    
 }
-
 
 - (void)locationManager:(CLLocationManager *)manager
 didStartMonitoringForRegion:(CLRegion *)region {
@@ -571,7 +454,6 @@ monitoringDidFailForRegion:(CLRegion *)region
         }
     }
 }
-
 
 - (void)locationManager:(CLLocationManager *)manager
          didEnterRegion:(CLRegion *)region {

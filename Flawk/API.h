@@ -7,8 +7,10 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <Firebase/Firebase.h>
 #import "Friend.h" 
 #import "PersistentCheckin.h"
+#import "LocationDaemon.h"
 
 FOUNDATION_EXPORT NSString *const API_REFRESH_FAILED_EVENT;
 FOUNDATION_EXPORT NSString *const API_REFRESH_SUCCESS_EVENT;
@@ -18,8 +20,11 @@ FOUNDATION_EXPORT NSString *const API_REFRESH_SUCCESS_EVENT;
     Friend *this_user;
     CLLocationManager *manager;
     NSMutableArray<PersistentCheckin *> *checkins;
+    LocationDaemon *locationDaemon;
+    Firebase *firebase;
 }
 
+@property (nonatomic, retain) Firebase *firebase;
 @property (nonatomic, retain) CLLocationManager *manager;
 @property (nonatomic, retain) NSMutableArray *friends;
 @property (nonatomic, retain) Friend *this_user;
@@ -28,10 +33,8 @@ FOUNDATION_EXPORT NSString *const API_REFRESH_SUCCESS_EVENT;
 /* Gets all friends from Facebook. */
 - (void)getAllFriendsWithBlock:(void(^)(NSArray *friends, NSError *error))block;
 
-
 /* Checks into a place. */
 - (void)checkinToPlace:(NSString *)place atLongitude:(float)longitude atLatitude:(float)latitude withBlock:(void(^)(NSError *error))block;
-
 
 /* Sends your location to another user. */
 - (void)shareLocationWithUser:(Friend *)user;
@@ -39,8 +42,8 @@ FOUNDATION_EXPORT NSString *const API_REFRESH_SUCCESS_EVENT;
 /* Returns true if the user is logged in (to facebook) */
 - (BOOL)isLoggedIn;
 
-/* Call this to validate our facebook login token. */
-- (void)refreshFacebookLogin;
+/* Tries to login the user with facebook */
+- (void)login;
 
 /* Parses friends and caches them */
 - (void)parseFriends:(NSArray *)friends;

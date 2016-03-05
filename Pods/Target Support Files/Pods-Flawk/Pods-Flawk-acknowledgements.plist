@@ -126,17 +126,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 		</dict>
 		<dict>
 			<key>FooterText</key>
-			<string>See https://www.parse.com/about/terms</string>
+			<string>https://www.firebase.com/terms/terms-of-service.html</string>
 			<key>Title</key>
-			<string>Parse</string>
-			<key>Type</key>
-			<string>PSGroupSpecifier</string>
-		</dict>
-		<dict>
-			<key>FooterText</key>
-			<string>See https://www.parse.com/about/terms</string>
-			<key>Title</key>
-			<string>ParseFacebookUtilsV4</string>
+			<string>Firebase</string>
 			<key>Type</key>
 			<string>PSGroupSpecifier</string>
 		</dict>

@@ -4,11 +4,10 @@
 # use_frameworks!
 
 target 'Flawk' do
-pod 'Parse'
+pod 'Firebase', '>= 2.5.0'
 pod 'FBSDKCoreKit'
 pod 'FBSDKShareKit'
 pod 'FBSDKLoginKit'
-pod 'ParseFacebookUtilsV4'
 end
 
 target 'FlawkTests' do

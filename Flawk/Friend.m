@@ -7,13 +7,10 @@
 //
 
 #import "Friend.h"
-#import <FBSDKCoreKit/FBSDKCoreKit.h>
-#import <ParseFacebookUtilsV4/ParseFacebookUtilsV4.h>
-#import <Parse/Parse.h>
 
 @implementation Friend
 
-@synthesize name=_name, fbid=_fbId, user, lastLatitude, lastLongitude, lastKnownArea, lastKnownLocation;
+@synthesize name=_name, fbid=_fbId, lastLatitude, lastLongitude, lastKnownArea, lastTimestamp, lastKnownLocation;
 
 - (id)initWithName:(NSString *)fullName fbId:(NSString *)fbId {
     
@@ -39,6 +36,18 @@
     [encoder encodeObject:lastKnownLocation forKey:@"location"];
 }
 
+- (NSDictionary *)toDictionary {
+    NSMutableDictionary *dictionary = [[NSMutableDictionary alloc] init];
+    [dictionary setObject:_name forKey:@"name"];
+    [dictionary setObject:_fbId forKey:@"fbId"];
+    [dictionary setObject:[NSNumber numberWithFloat:lastLatitude] forKey:@"lat"];
+    [dictionary setObject:[NSNumber numberWithFloat:lastlongitude] forKey:@"lon"];
+    [dictionary setObject:[NSNumber numberWithFloat:lastTimestamp] forKey:@"timestamp"];
+    [dictionary setObject:lastKnownArea forKey:@"area"];
+    [dictionary setObject:lastKnownLocation forKey:@"location"];
+    return dictionary;
+}
+
 - (id)initWithCoder:(NSCoder *)decoder {
     if((self = [super init])) {
         //decode properties, other class vars
@@ -61,20 +70,8 @@
     
     // No valid location data yet.
     lastTimestamp = -1;
-    [self initializeWithParse];
     
     return self;
-}
-
-- (void)initializeWithParse {
-    FBSDKAccessToken *accessToken = [FBSDKAccessToken currentAccessToken];
-    PFQuery *query = [PFUser query];
-    [query whereKey:@"facebookId" equalTo:[accessToken userID]];
-    [query getFirstObjectInBackgroundWithBlock:^(PFObject * _Nullable object, NSError * _Nullable error) {
-        if (object != nil) {
-            [self setUser:(PFUser *)object];
-        } 
-    }];
 }
 
 - (NSString *)getRandomPassword {
@@ -123,12 +120,6 @@
     self.lastKnownLocation = place;
     self.lastKnownArea = area;
     lastTimestamp = time(NULL);
-}
-
-- (void)setUser:(PFUser *)u {
-    [u setObject:_name forKey:@"username"];
-    [u setObject:_fbId forKey:@"facebookId"];
-    [u saveInBackground];
 }
 
 @end

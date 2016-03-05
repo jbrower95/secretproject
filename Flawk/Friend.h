@@ -8,7 +8,6 @@
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
-#import <Parse/Parse.h>
 
 @interface Friend : NSObject<NSCoding> {
     
@@ -32,9 +31,6 @@
     
     /* The timestamp of the last known location. */
     double lastTimestamp;
-    
-    /* The */
-    PFUser *user;
 }
 
 - (id)initWithName:(NSString *)name fbId:(NSString *)fbId;
@@ -53,13 +49,10 @@
 @property (nonatomic) double lastLongitude;
 @property (nonatomic) double lastTimestamp;
 
-@property (nonatomic, retain) PFUser *user;
-
 - (CGPoint)getLastLocation;
 
 - (BOOL)locationKnown;
 
 - (void)setLastLocation:(CGPoint)location place:(NSString *)place area:(NSString *)area;
 
-- (void)setUser:(PFUser *)user;
 @end

@@ -7,12 +7,13 @@
 //
 
 #import "PersistentCheckin.h"
+#import "API.h"
 
 @implementation PersistentCheckin
 
-@synthesize name, region, location;
+@synthesize name, region, location, friends;
 
-- (id)initWithRegion:(CLRegion *)_region location:(NSString *)_location name:(NSString *)_name friends:(NSMutableArray *)friends {
+- (id)initWithRegion:(CLRegion *)_region location:(NSString *)_location name:(NSString *)_name friends:(NSMutableArray *)_friends {
     if (self = [super init]) {
         self.name = _name;
         self.region = _region;
@@ -40,6 +41,13 @@
         friends = [decoder decodeObjectForKey:@"lon"];
     }
     return self;
+}
+
+- (void)markActive {
+    
+    // Create a checkin for the current user.
+    const double lat = [[API sharedAPI] this_user].lastLatitude;
+    const double lon = [[API sharedAPI] this_user].lastLongitude;
 }
 
 @end

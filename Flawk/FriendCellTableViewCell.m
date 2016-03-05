@@ -19,7 +19,7 @@
 
 - (IBAction)buttonPressed:(id)sender {
     
-    [whereAtButton setTitle:@"Pinged!" forState:UIControlStateNormal];
+    [whereAtButton setTitle:@"PINGED" forState:UIControlStateNormal];
     
     [self performSelector:@selector(resetButton:) withObject:nil afterDelay:8];
     
@@ -28,7 +28,7 @@
 
 
 - (void)resetButton:(id)sender {
-    [whereAtButton setTitle:@"Where at?" forState:UIControlStateNormal];
+    [whereAtButton setTitle:@"WHERE AT?" forState:UIControlStateNormal];
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated {

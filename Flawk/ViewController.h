@@ -18,8 +18,12 @@
     CLLocationManager *manager;
     
     UIRefreshControl *refreshControl;
+    
+    NSMutableArray *friends;
 }
 @property (nonatomic, strong) CLLocationManager *manager;
+
+- (IBAction)addFriends:(id)sender;
 
 @end
 
