@@ -6,9 +6,9 @@
 //  Copyright © 2015 Big Sweet Software Projects. All rights reserved.
 //
 
-#import "FriendCellTableViewCell.h"
+#import "LocationKnownCell.h"
 
-@implementation FriendCellTableViewCell
+@implementation LocationKnownCell
 
 @synthesize name, location, area, whereAtButton;
 
@@ -40,6 +40,12 @@
     [super setSelected:selected animated:animated];
 
     // Configure the view for the selected state
+}
+
+
++ (CGFloat)preferredHeightInView:(UIView *)parent {
+    float ratio = 80.0 / 320.0f;
+    return ratio * parent.frame.size.width;
 }
 
 - (void)applyFriend:(Friend *)f {

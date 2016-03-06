@@ -23,6 +23,8 @@
     NSMutableArray *friends;
     
     BBBadgeBarButtonItem *plusItem;
+    
+    CGFloat offset;
 }
 @property (nonatomic, strong) CLLocationManager *manager;
 

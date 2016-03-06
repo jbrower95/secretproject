@@ -8,7 +8,7 @@
 
 #import <UIKit/UIKit.h>
 #import "Friend.h"
-@interface FriendCellTableViewCell : UITableViewCell {
+@interface LocationKnownCell : UITableViewCell {
     
     IBOutlet UILabel *name;
     IBOutlet UILabel *location;
@@ -26,6 +26,7 @@
 
 @property (nonatomic, retain) Friend *model;
 
++ (CGFloat)preferredHeightInView:(UIView *)parent;
 
 - (void)applyFriend:(Friend *)f;
 

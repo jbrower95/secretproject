@@ -46,7 +46,7 @@
             }
             case 1: {
                 // Random people to add
-                Friend *friend = [[API sharedAPI] friends][indexPath.row];
+                Friend *friend = friends[indexPath.row];
                 cell = [tableView dequeueReusableCellWithIdentifier:@"AddFriendCell"];
                 
                 if (cell == nil) {
@@ -73,7 +73,7 @@
         
     } else {
         // Random people to add
-        Friend *friend = [[API sharedAPI] friends][indexPath.row];
+        Friend *friend = friends[indexPath.row];
         cell = [tableView dequeueReusableCellWithIdentifier:@"AddFriendCell"];
         
         if (cell == nil) {
@@ -109,13 +109,13 @@
                 return num_requests;
             case 1:
                 // explore friends
-                return [[API sharedAPI] friends].count;
+                return friends.count;
         }
     } else {
-        return [[[API sharedAPI] friends] count];
+        return friends.count;
     }
     
-    return [[API sharedAPI] friends].count;
+    return friends.count;
 }
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
@@ -132,13 +132,11 @@
     
     NSMutableArray *outstandingRequests = [NSMutableArray array];
     for (Request *request in [[API sharedAPI] outstandingFriendRequests]) {
-        if ([request accepted] && [[NSDate date] timeIntervalSince1970] - [request timestamp] > 30) {
-            
-        } else {
+        if (!([request accepted] && [[NSDate date] timeIntervalSince1970] - [request timestamp] > 30)) {
             [outstandingRequests addObject:request];
         }
     }
-    
+    [self resyncFriends];
     [[API sharedAPI] setOutstandingFriendRequests:outstandingRequests];
     dispatch_async(dispatch_get_main_queue(), ^{
         [self.tableView reloadData];
@@ -148,6 +146,15 @@
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(nonnull NSIndexPath *)indexPath {
     // Create a friend request in the database
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
+}
+
+- (void)resyncFriends {
+    friends = [[NSMutableArray alloc] init];
+    for (Friend *friend in [[API sharedAPI] friends]) {
+        if (![[[API sharedAPI] confirmedFriends] containsObject:friend]) {
+            [friends addObject:friend];
+        }
+    }
 }
 
 - (void)viewDidLoad {
@@ -160,6 +167,7 @@
     Firebase *requests = [[[API sharedAPI] firebase] childByAppendingPath:@"requests"];
     FQuery *query = [requests queryOrderedByChild:@"from"];
     query = [query queryEqualToValue:[API sharedAPI].this_user.fbid];
+    [self resyncFriends];
     handle = [query observeEventType:FEventTypeValue withBlock:^(FDataSnapshot *snapshot) {
         
         if (!snapshot.exists) {

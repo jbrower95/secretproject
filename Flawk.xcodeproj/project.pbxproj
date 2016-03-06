@@ -15,6 +15,8 @@
 		D0262C0D1C8B8DE800BE506C /* FriendRequestPendingCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D0262C0C1C8B8DE800BE506C /* FriendRequestPendingCell.m */; };
 		D0262C101C8B912D00BE506C /* AddFriendCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D0262C0F1C8B912D00BE506C /* AddFriendCell.m */; };
 		D0262C131C8B93F000BE506C /* UIImageView+Web.m in Sources */ = {isa = PBXBuildFile; fileRef = D0262C121C8B93F000BE506C /* UIImageView+Web.m */; };
+		D0262C161C8BF7FA00BE506C /* LocationNotKnownCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D0262C151C8BF7FA00BE506C /* LocationNotKnownCell.m */; };
+		D0262C191C8CAA5A00BE506C /* MapCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D0262C181C8CAA5A00BE506C /* MapCell.m */; };
 		D02EBC671C1397BD00D037CB /* ShareLocationViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D02EBC661C1397BD00D037CB /* ShareLocationViewController.m */; };
 		D038324A1C10ED320001BA79 /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D03832491C10ED320001BA79 /* CoreLocation.framework */; };
 		D038324D1C113C670001BA79 /* FriendLocationController.m in Sources */ = {isa = PBXBuildFile; fileRef = D038324C1C113C670001BA79 /* FriendLocationController.m */; };
@@ -29,7 +31,7 @@
 		D0B6A6BF1C0FB384007200E5 /* MapKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0B6A6BE1C0FB384007200E5 /* MapKit.framework */; };
 		D0B6A6C31C0FC147007200E5 /* Friend.m in Sources */ = {isa = PBXBuildFile; fileRef = D0B6A6C21C0FC147007200E5 /* Friend.m */; };
 		D0B6A6C61C0FC292007200E5 /* API.m in Sources */ = {isa = PBXBuildFile; fileRef = D0B6A6C51C0FC292007200E5 /* API.m */; };
-		D0B6A6CA1C0FC741007200E5 /* FriendCellTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D0B6A6C91C0FC741007200E5 /* FriendCellTableViewCell.m */; };
+		D0B6A6CA1C0FC741007200E5 /* LocationKnownCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D0B6A6C91C0FC741007200E5 /* LocationKnownCell.m */; };
 		D0E169651C27BCAC001E4D06 /* LocationDaemon.m in Sources */ = {isa = PBXBuildFile; fileRef = D0E169641C27BCAC001E4D06 /* LocationDaemon.m */; };
 		D0F11DD31C8B7E91001C884B /* Request.m in Sources */ = {isa = PBXBuildFile; fileRef = D0F11DD21C8B7E91001C884B /* Request.m */; };
 /* End PBXBuildFile section */
@@ -68,6 +70,10 @@
 		D0262C0F1C8B912D00BE506C /* AddFriendCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AddFriendCell.m; sourceTree = "<group>"; };
 		D0262C111C8B93F000BE506C /* UIImageView+Web.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImageView+Web.h"; sourceTree = "<group>"; };
 		D0262C121C8B93F000BE506C /* UIImageView+Web.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImageView+Web.m"; sourceTree = "<group>"; };
+		D0262C141C8BF7FA00BE506C /* LocationNotKnownCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LocationNotKnownCell.h; sourceTree = "<group>"; };
+		D0262C151C8BF7FA00BE506C /* LocationNotKnownCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LocationNotKnownCell.m; sourceTree = "<group>"; };
+		D0262C171C8CAA5A00BE506C /* MapCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MapCell.h; sourceTree = "<group>"; };
+		D0262C181C8CAA5A00BE506C /* MapCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MapCell.m; sourceTree = "<group>"; };
 		D02EBC651C1397BD00D037CB /* ShareLocationViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ShareLocationViewController.h; sourceTree = "<group>"; };
 		D02EBC661C1397BD00D037CB /* ShareLocationViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ShareLocationViewController.m; sourceTree = "<group>"; };
 		D03832491C10ED320001BA79 /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
@@ -94,8 +100,8 @@
 		D0B6A6C21C0FC147007200E5 /* Friend.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Friend.m; sourceTree = "<group>"; };
 		D0B6A6C41C0FC292007200E5 /* API.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = API.h; sourceTree = "<group>"; };
 		D0B6A6C51C0FC292007200E5 /* API.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = API.m; sourceTree = "<group>"; };
-		D0B6A6C81C0FC741007200E5 /* FriendCellTableViewCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FriendCellTableViewCell.h; sourceTree = "<group>"; };
-		D0B6A6C91C0FC741007200E5 /* FriendCellTableViewCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FriendCellTableViewCell.m; sourceTree = "<group>"; };
+		D0B6A6C81C0FC741007200E5 /* LocationKnownCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LocationKnownCell.h; sourceTree = "<group>"; };
+		D0B6A6C91C0FC741007200E5 /* LocationKnownCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LocationKnownCell.m; sourceTree = "<group>"; };
 		D0E169631C27BCAC001E4D06 /* LocationDaemon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LocationDaemon.h; sourceTree = "<group>"; };
 		D0E169641C27BCAC001E4D06 /* LocationDaemon.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LocationDaemon.m; sourceTree = "<group>"; };
 		D0F11DD11C8B7E91001C884B /* Request.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Request.h; sourceTree = "<group>"; };
@@ -284,8 +290,12 @@
 		D0B6A6C71C0FC72D007200E5 /* View */ = {
 			isa = PBXGroup;
 			children = (
-				D0B6A6C81C0FC741007200E5 /* FriendCellTableViewCell.h */,
-				D0B6A6C91C0FC741007200E5 /* FriendCellTableViewCell.m */,
+				D0B6A6C81C0FC741007200E5 /* LocationKnownCell.h */,
+				D0B6A6C91C0FC741007200E5 /* LocationKnownCell.m */,
+				D0262C141C8BF7FA00BE506C /* LocationNotKnownCell.h */,
+				D0262C151C8BF7FA00BE506C /* LocationNotKnownCell.m */,
+				D0262C171C8CAA5A00BE506C /* MapCell.h */,
+				D0262C181C8CAA5A00BE506C /* MapCell.m */,
 			);
 			name = View;
 			sourceTree = "<group>";
@@ -479,12 +489,14 @@
 			files = (
 				D0011A8C1C8A8ECB00D07465 /* FeatureConfig.m in Sources */,
 				D0B6A6931C0FB2EB007200E5 /* ViewController.m in Sources */,
+				D0262C161C8BF7FA00BE506C /* LocationNotKnownCell.m in Sources */,
 				D0011A881C8A695B00D07465 /* AddFriendsViewController.m in Sources */,
 				D0011A901C8AB0E800D07465 /* NSDate+Prettify.m in Sources */,
 				D0262C0D1C8B8DE800BE506C /* FriendRequestPendingCell.m in Sources */,
 				D0B6A6901C0FB2EB007200E5 /* AppDelegate.m in Sources */,
 				D0E169651C27BCAC001E4D06 /* LocationDaemon.m in Sources */,
 				D0B6A68D1C0FB2EB007200E5 /* main.m in Sources */,
+				D0262C191C8CAA5A00BE506C /* MapCell.m in Sources */,
 				D02EBC671C1397BD00D037CB /* ShareLocationViewController.m in Sources */,
 				D038324D1C113C670001BA79 /* FriendLocationController.m in Sources */,
 				D0262C131C8B93F000BE506C /* UIImageView+Web.m in Sources */,
@@ -492,7 +504,7 @@
 				D0262C101C8B912D00BE506C /* AddFriendCell.m in Sources */,
 				D0B6A6C61C0FC292007200E5 /* API.m in Sources */,
 				D004281D1C1573C30056BB99 /* PersistentCheckin.m in Sources */,
-				D0B6A6CA1C0FC741007200E5 /* FriendCellTableViewCell.m in Sources */,
+				D0B6A6CA1C0FC741007200E5 /* LocationKnownCell.m in Sources */,
 				D0F11DD31C8B7E91001C884B /* Request.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

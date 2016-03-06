@@ -11,9 +11,11 @@
 #import "ViewController.h"
 #import "API.h"
 #import "Friend.h"
-#import "FriendCellTableViewCell.h"
+#import "LocationKnownCell.h"
 #import "FriendLocationController.h"
 #import "FeatureConfig.h"
+#import "LocationNotKnownCell.h"
+#import "MapCell.h"
 
 @interface ViewController ()
 
@@ -28,7 +30,7 @@
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(refreshFailed:) name:API_REFRESH_FAILED_EVENT object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(refreshSuccess:) name:API_REFRESH_SUCCESS_EVENT object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(receivedFriendRequest:) name:API_RECEIVED_FRIEND_REQUEST_EVENT object:nil];
-    
+    offset = 0;
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(parseFailure:) name:@"ParseFailure" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(parseSuccess:) name:@"ParseSuccess" object:nil];
@@ -51,6 +53,7 @@
     [refreshControl addTarget:self action:@selector(reloadTable:) forControlEvents:UIControlEventValueChanged];
     [tableView addSubview:refreshControl];
     [tableView sendSubviewToBack:refreshControl];
+    [tableView setDelegate:self];
     
     [self setCheckinDisabled];
     [[API sharedAPI] initLocations];
@@ -63,7 +66,6 @@
         [self login];
     } else {
         NSLog(@"User is logged in already!");
-        
         [[API sharedAPI] loadExtendedUserInfoFromFacebook];
         [self loadAllFriends];
     }
@@ -85,7 +87,12 @@
 - (void)receivedFriendRequest:(NSNotification *)notification {
     NSLog(@"Received friend request notification!");
     dispatch_async(dispatch_get_main_queue(), ^{
-        int num_requests = (int)[[API sharedAPI] outstandingFriendRequests].count;
+        int num_requests = 0;
+        for (Request *r in [[API sharedAPI] outstandingFriendRequests]) {
+            if (![r accepted]) {
+                num_requests++;
+            }
+        }
         [plusItem setBadgeValue:[NSString stringWithFormat:@"%d", num_requests]];
     });
 }
@@ -95,7 +102,6 @@
         [tableView reloadData];
     });
 }
-
 
 - (void)setCheckinDisabled {
     [button setEnabled:NO];
@@ -273,58 +279,77 @@
         }
         
         NSLog(@"Got %lu friends.", (unsigned long)[receivedFriends count]);
+        [refreshControl endRefreshing];
     }];
-}
-
-- (void)parseFailure:(id)sender {
-    NSLog(@"[Main] Couldn't associate with parse!");
-}
-
-- (void)parseSuccess:(id)sender {
-    
-    NSLog(@"[Main] Successfully associated with parse!");
-    
-}
-
-
-- (void)viewWillLayoutSubviews {
-    
-    // Arrange our views here.
-    
-    
 }
 
 - (IBAction)checkin:(id)sender {
     [self performSegueWithIdentifier:@"ShareLocationSegue" sender:nil];
 }
 
-- (void)didReceiveMemoryWarning {
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    
+    if (indexPath.row == 0) {
+        return [MapCell preferredHeightInView:tableView];
+    } else {
+        Friend *f = [[API sharedAPI] confirmedFriends][indexPath.row-1];
+        if ([f locationKnown]) {
+            return [LocationKnownCell preferredHeightInView:tableView];
+        } else {
+            return [LocationNotKnownCell preferredHeightInView:tableView];
+        }
+    }
+    
 }
 
 
-
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+- (UITableViewCell *)tableView:(UITableView *)_tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     
-    FriendCellTableViewCell *cell = (FriendCellTableViewCell *)[tableView dequeueReusableCellWithIdentifier:@"LocationKnownCell"];
-    
-    if (cell == nil) {
-        cell = [[FriendCellTableViewCell alloc] init];
+    if (indexPath.row == 0) {
+        // The map cell
+        MapCell *cell = [tableView dequeueReusableCellWithIdentifier:@"MapCell"];
+        if (cell == nil) {
+            cell = [[MapCell alloc] init];
+        }
+        [cell setup];
+        return cell;
     }
     
     /* Apply friend to cell */
-    Friend *friend = [[[API sharedAPI] confirmedFriends] objectAtIndex:indexPath.row];
-    if (friend != nil) {
-        // apply them
-        [cell applyFriend:friend];
-    }
+    Friend *friend = [[[API sharedAPI] confirmedFriends] objectAtIndex:indexPath.row - 1];
     
-    return cell;
+    if ([friend locationKnown]) {
+        LocationKnownCell *cell = (LocationKnownCell *)[_tableView dequeueReusableCellWithIdentifier:@"LocationKnownCell"];
+
+        if (cell == nil) {
+            cell = [[LocationKnownCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"LocationKnownCell"];
+        }
+
+        if (friend != nil) {
+            // apply them
+            [cell applyFriend:friend];
+        }
+        
+        return cell;
+    } else {
+        LocationNotKnownCell *cell = (LocationNotKnownCell *)[_tableView dequeueReusableCellWithIdentifier:@"LocationNotKnownCell"];
+        
+        if (cell == nil) {
+            cell = [[LocationNotKnownCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"LocationNotKnownCell"];
+        }
+        
+        if (friend != nil) {
+            // apply them
+            [cell applyFriend:friend];
+        }
+        
+        return cell;
+    }
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return [[[API sharedAPI] confirmedFriends] count];
+    return [[[API sharedAPI] confirmedFriends] count] + 1;
 }
 
 
@@ -332,7 +357,7 @@
     
     NSString *segue = @"FriendLocationSegue";
     
-    Friend *f = [[[API sharedAPI] confirmedFriends] objectAtIndex:indexPath.row];
+    Friend *f = [[[API sharedAPI] confirmedFriends] objectAtIndex:indexPath.row-1];
     
     if ([f locationKnown]) {
         [self performSegueWithIdentifier:segue sender:self];
@@ -343,7 +368,7 @@
     if ([segue.identifier isEqualToString:@"FriendLocationSegue"]) {
              NSIndexPath *indexPath = [tableView indexPathForSelectedRow];
              FriendLocationController *destViewController = segue.destinationViewController;
-             destViewController.person = [[[API sharedAPI] friends] objectAtIndex:indexPath.row];
+             destViewController.person = [[[API sharedAPI] confirmedFriends] objectAtIndex:indexPath.row-1];
             destViewController.navigationItem.title = [destViewController.person name];
             [tableView deselectRowAtIndexPath:indexPath animated:YES];
     }
