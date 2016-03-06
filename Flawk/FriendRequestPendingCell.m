@@ -46,7 +46,8 @@
 - (void)setFriendRequest:(Request *)r from:(Friend *)from {
     self.request = r;
     [self.nameField setText:from.name];
-    
+    [self.image.layer setCornerRadius:4];
+    self.image.layer.masksToBounds = YES;
     NSString *time = [[NSDate date] prettifiedStringFromReferenceDate:[NSDate dateWithTimeIntervalSince1970:self.request.timestamp]];
     
     [self.ignoreButton setHidden:r.accepted];

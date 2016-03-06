@@ -57,6 +57,8 @@
     self.fr = friend;
     self.nameField.text = [friend name];
     self.timestampField.text = @"";
+    self.image.layer.masksToBounds = YES;
+    [self.image.layer setCornerRadius:4];
     [friend loadFacebookProfilePictureUrlWithBlock:^(NSString *url) {
         if (url != nil) {
             [self.image loadRemoteUrl:url];

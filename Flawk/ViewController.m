@@ -316,6 +316,8 @@
         return cell;
     }
     
+    BOOL patterned = !(BOOL)(indexPath.row % 2);
+    
     /* Apply friend to cell */
     Friend *friend = [[[API sharedAPI] confirmedFriends] objectAtIndex:indexPath.row - 1];
     
@@ -331,6 +333,12 @@
             [cell applyFriend:friend];
         }
         
+        if (patterned) {
+            [cell setBackgroundColor:[UIColor colorWithPatternImage:[UIImage imageNamed:@"Mask"]]];
+        } else {
+            [cell setBackgroundColor:[UIColor whiteColor]];
+        }
+        
         return cell;
     } else {
         LocationNotKnownCell *cell = (LocationNotKnownCell *)[_tableView dequeueReusableCellWithIdentifier:@"LocationNotKnownCell"];
@@ -342,6 +350,12 @@
         if (friend != nil) {
             // apply them
             [cell applyFriend:friend];
+        }
+        
+        if (patterned) {
+            [cell setBackgroundColor:[UIColor colorWithPatternImage:[UIImage imageNamed:@"Mask"]]];
+        } else {
+            [cell setBackgroundColor:[UIColor whiteColor]];
         }
         
         return cell;
