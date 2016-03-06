@@ -7,9 +7,10 @@
 //
 
 #import <UIKit/UIKit.h>
-
+#import "NSDate+Prettify.h"
+#import <Firebase/Firebase.h>
 @interface AddFriendsViewController : UITableViewController
 
 @property (nonatomic, retain) NSMutableArray *friends;
-
+@property (nonatomic, assign) FirebaseHandle handle;
 @end

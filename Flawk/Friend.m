@@ -7,6 +7,8 @@
 //
 
 #import "Friend.h"
+#import <FBSDKCoreKit/FBSDKCoreKit.h>
+#import "API.h"
 
 @implementation Friend
 
@@ -23,6 +25,38 @@
     lastTimestamp = -1;
     
     return self;
+}
+
++ (instancetype)friendWithFacebookId:(NSString *)fbid {
+for (Friend *friend in [[API sharedAPI] friends]) {
+        if ([[friend fbid] isEqualToString:fbid]) {
+            return friend;
+        }
+    }
+    
+    return nil;
+}
+
+- (void)loadFacebookProfilePictureUrlWithBlock:(void (^)(NSString *url))completion {
+    
+    if (_fbId == nil) {
+        completion(nil);
+    }
+    
+    if (profilePictureUrl != nil) {
+        completion(profilePictureUrl);
+    }
+    
+    FBSDKGraphRequest *request = [[FBSDKGraphRequest alloc] initWithGraphPath:[NSString stringWithFormat:@"%@/picture", _fbId] parameters:@{@"redirect" : @"false", @"type" : @"small", @"fields" : @"url"}];
+    
+    [request startWithCompletionHandler:^(FBSDKGraphRequestConnection *connection, id result, NSError *error) {
+        if (!error) {
+            profilePictureUrl = result[@"data"][@"url"];
+            completion(profilePictureUrl);
+        } else {
+            completion(nil);
+        }
+    }];
 }
 
 - (void)encodeWithCoder:(NSCoder *)encoder {

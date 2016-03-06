@@ -8,6 +8,7 @@
 
 #import <UIKit/UIKit.h>
 #import "Friend.h"
+#import "BBBadgeBarButtonItem/BBBadgeBarButtonItem.h"
 
 @interface ViewController : UIViewController<UITableViewDataSource, UITableViewDelegate, NSURLSessionDataDelegate, CLLocationManagerDelegate> {
     
@@ -20,6 +21,8 @@
     UIRefreshControl *refreshControl;
     
     NSMutableArray *friends;
+    
+    BBBadgeBarButtonItem *plusItem;
 }
 @property (nonatomic, strong) CLLocationManager *manager;
 

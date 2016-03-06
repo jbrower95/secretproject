@@ -9,7 +9,7 @@
 #import <MapKit/MapKit.h>
 
 #import "ViewController.h"
-#import "Api.h"
+#import "API.h"
 #import "Friend.h"
 #import "FriendCellTableViewCell.h"
 #import "FriendLocationController.h"
@@ -27,6 +27,8 @@
     // Register for API notifications here.
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(refreshFailed:) name:API_REFRESH_FAILED_EVENT object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(refreshSuccess:) name:API_REFRESH_SUCCESS_EVENT object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(receivedFriendRequest:) name:API_RECEIVED_FRIEND_REQUEST_EVENT object:nil];
+    
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(parseFailure:) name:@"ParseFailure" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(parseSuccess:) name:@"ParseSuccess" object:nil];
@@ -39,6 +41,9 @@
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(acknowledgeRequest:) name:@"AcknowledgeRequest" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(locationAvailable:) name:@"LocationAvailable" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(messageReceived:) name:@"MessageReceived" object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reload:) name:@"ReloadMainTable" object:nil];
+    
     
     self.navigationItem.title = @"Flawk";
     
@@ -58,12 +63,39 @@
         [self login];
     } else {
         NSLog(@"User is logged in already!");
+        
         [[API sharedAPI] loadExtendedUserInfoFromFacebook];
         [self loadAllFriends];
     }
     
+    UIButton *plus = [[UIButton alloc] initWithFrame:CGRectMake(0,0,20,20)];
+    [plus setImage:[UIImage imageNamed:@"plus"] forState:UIControlStateNormal];
+    [plus addTarget:self action:@selector(addFriends:) forControlEvents:UIControlEventTouchUpInside];
+    
+    plusItem = [[BBBadgeBarButtonItem alloc] initWithCustomUIButton:plus];
+    [plusItem setShouldHideBadgeAtZero:YES];
+    [plusItem setTintColor:[UIColor whiteColor]];
+    plusItem.badgeOriginX = 12;
+    plusItem.badgeBGColor = [UIColor colorWithRed:0.091 green:0.714 blue:0.811 alpha:1.000];
+    [self.navigationItem setRightBarButtonItem:plusItem];
+    
     [super viewDidLoad];
 }
+
+- (void)receivedFriendRequest:(NSNotification *)notification {
+    NSLog(@"Received friend request notification!");
+    dispatch_async(dispatch_get_main_queue(), ^{
+        int num_requests = (int)[[API sharedAPI] outstandingFriendRequests].count;
+        [plusItem setBadgeValue:[NSString stringWithFormat:@"%d", num_requests]];
+    });
+}
+
+- (void)reload:(NSNotification *)not {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [tableView reloadData];
+    });
+}
+
 
 - (void)setCheckinDisabled {
     [button setEnabled:NO];
@@ -79,9 +111,11 @@
     }
     
     [[API sharedAPI] getLocationAndAreaWithBlock:^{
-        NSString *location = [[API sharedAPI] this_user].lastKnownLocation;
-        NSString *area = [[API sharedAPI] this_user].lastKnownLocation;
+        //NSString *location = [[API sharedAPI] this_user].lastKnownLocation;
+        //NSString *area = [[API sharedAPI] this_user].lastKnownLocation;
     }];
+    
+    [self receivedFriendRequest:nil];
 }
 
 - (void)reloadTable:(id)sender {
@@ -239,27 +273,6 @@
         }
         
         NSLog(@"Got %lu friends.", (unsigned long)[receivedFriends count]);
-        
-        NSMutableArray *newFriends = [[NSMutableArray alloc] init];
-        
-        Firebase *friendsDb = [[[[[API sharedAPI] firebase] childByAppendingPath:@"users"] childByAppendingPath:[[API sharedAPI] firebase].authData.uid] childByAppendingPath:@"friends"];
-        
-        [friendsDb observeSingleEventOfType:FEventTypeValue withBlock:^(FDataSnapshot *snapshot) {
-            if (snapshot.exists) {
-                for (Friend *f in receivedFriends) {
-                    if ([snapshot hasChild:[f fbid]]) {
-                        [newFriends addObject:f];
-                    }
-                }
-            }
-            
-            // Assign new friends.
-            friends = newFriends;
-            dispatch_async(dispatch_get_main_queue(), ^() {
-                [tableView reloadData];
-                [refreshControl endRefreshing];
-            });
-        }];
     }];
 }
 
@@ -301,7 +314,7 @@
     }
     
     /* Apply friend to cell */
-    Friend *friend = [friends objectAtIndex:indexPath.row];
+    Friend *friend = [[[API sharedAPI] confirmedFriends] objectAtIndex:indexPath.row];
     if (friend != nil) {
         // apply them
         [cell applyFriend:friend];
@@ -311,14 +324,15 @@
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return [friends count];
+    return [[[API sharedAPI] confirmedFriends] count];
 }
+
 
 - (void)tableView:(UITableView *)table didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     
     NSString *segue = @"FriendLocationSegue";
     
-    Friend *f = [friends objectAtIndex:indexPath.row];
+    Friend *f = [[[API sharedAPI] confirmedFriends] objectAtIndex:indexPath.row];
     
     if ([f locationKnown]) {
         [self performSegueWithIdentifier:segue sender:self];

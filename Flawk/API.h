@@ -11,12 +11,18 @@
 #import "Friend.h" 
 #import "PersistentCheckin.h"
 #import "LocationDaemon.h"
+#import "Request.h"
 
 FOUNDATION_EXPORT NSString *const API_REFRESH_FAILED_EVENT;
 FOUNDATION_EXPORT NSString *const API_REFRESH_SUCCESS_EVENT;
+FOUNDATION_EXPORT NSString *const API_RECEIVED_FRIEND_REQUEST_EVENT;
 
 @interface API : NSObject <CLLocationManagerDelegate> {
     NSMutableArray<Friend *> *friends;
+    NSMutableArray<Friend *> *confirmedFriends;
+    NSMutableArray<Request *> *outstandingFriendRequests;
+    NSMutableArray<Request *> *sentFriendRequests;
+    
     Friend *this_user;
     CLLocationManager *manager;
     NSMutableArray<PersistentCheckin *> *checkins;
@@ -27,8 +33,11 @@ FOUNDATION_EXPORT NSString *const API_REFRESH_SUCCESS_EVENT;
 @property (nonatomic, retain) Firebase *firebase;
 @property (nonatomic, retain) CLLocationManager *manager;
 @property (nonatomic, retain) NSMutableArray *friends;
+@property (nonatomic, retain) NSMutableArray *confirmedFriends;
 @property (nonatomic, retain) Friend *this_user;
 @property (nonatomic, retain) NSMutableArray<PersistentCheckin *> *checkins;
+@property (nonatomic, retain) NSMutableArray<Request *> *outstandingFriendRequests;
+@property (nonatomic, retain) NSMutableArray<Request *> *sentFriendRequests;
 
 /* Gets all friends from Facebook. */
 - (void)getAllFriendsWithBlock:(void(^)(NSArray *friends, NSError *error))block;

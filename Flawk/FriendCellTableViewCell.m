@@ -10,8 +10,10 @@
 
 @implementation FriendCellTableViewCell
 
+@synthesize name, location, area, whereAtButton;
+
 - (void)awakeFromNib {
-    whereAtButton.layer.cornerRadius = 4;
+    self.whereAtButton.layer.cornerRadius = 4;
     [name sizeToFit];
     
     self.accessoryType = UITableViewCellAccessoryNone;
@@ -19,7 +21,7 @@
 
 - (IBAction)buttonPressed:(id)sender {
     
-    [whereAtButton setTitle:@"PINGED" forState:UIControlStateNormal];
+    [self.whereAtButton setTitle:@"PINGED" forState:UIControlStateNormal];
     
     [self performSelector:@selector(resetButton:) withObject:nil afterDelay:8];
     
@@ -28,7 +30,7 @@
 
 
 - (void)resetButton:(id)sender {
-    [whereAtButton setTitle:@"WHERE AT?" forState:UIControlStateNormal];
+    [self.whereAtButton setTitle:@"WHERE AT?" forState:UIControlStateNormal];
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated {

@@ -4,6 +4,11 @@
 <dict>
 	<key>SchemeUserState</key>
 	<dict>
+		<key>BBBadgeBarButtonItem.xcscheme</key>
+		<dict>
+			<key>isShown</key>
+			<false/>
+		</dict>
 		<key>Bolts.xcscheme</key>
 		<dict>
 			<key>isShown</key>
@@ -57,7 +62,12 @@
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>92EF635D045AB608E9BC1F1BB972A346</key>
+		<key>ABA4821C38CDA67D83DD6F56700DD990</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>C1071068DB988D25AD8E7E796905F326</key>
 		<dict>
 			<key>primary</key>
 			<true/>

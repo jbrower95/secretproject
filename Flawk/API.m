@@ -13,19 +13,25 @@
 
 NSString *const API_REFRESH_FAILED_EVENT = @"APIRefreshFailedEvent";
 NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
+NSString *const API_RECEIVED_FRIEND_REQUEST_EVENT = @"APIReceivedFriendRequestEvent";
+
+NSString *const FIREBASE_URI = @"https://flawkdb.firebaseio.com";
 
 @implementation API
 
 @synthesize manager; 
 
-@synthesize friends, this_user, checkins, firebase;
+@synthesize friends, this_user, checkins, firebase, outstandingFriendRequests, sentFriendRequests, confirmedFriends;
 
 - (id)init {
     if (self = [super init]) {
+        self.firebase = [[Firebase alloc] initWithUrl:FIREBASE_URI];
         self.friends = [[NSMutableArray alloc] init];
         self.this_user = [[Friend alloc] init];
         self.checkins = [[NSMutableArray alloc] init];
-        self.firebase = [[Firebase alloc] initWithUrl:@"https://flawkdb.firebaseio.com"];
+        self.outstandingFriendRequests = [[NSMutableArray alloc] init];
+        self.confirmedFriends = [[NSMutableArray alloc] init];
+        self.sentFriendRequests = [[NSMutableArray alloc] init];
     }
 
     NSData *friendsData = [[NSUserDefaults standardUserDefaults] objectForKey:@"friends"];
@@ -51,7 +57,43 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
         self.this_user = (Friend *)[NSKeyedUnarchiver unarchiveObjectWithData:userData];
     }
     
+    
     return self;
+}
+
+- (void)setupListeners {
+    FQuery *query = [[[self.firebase childByAppendingPath:@"requests"] queryOrderedByChild:@"to"] queryEqualToValue:[self this_user].fbid];
+    NSLog(@"Listening for requests for fbid: %@", [self this_user].fbid);
+    // Listen for incoming friend requests
+    [query observeEventType:FEventTypeValue withBlock:^(FDataSnapshot *snapshot) {
+        if (snapshot.exists) {
+            [self.outstandingFriendRequests removeAllObjects];
+            FDataSnapshot *child;
+            const int FIVE_MINUTES = 300;
+            for (child in snapshot.children) {
+                Request *request = [[Request alloc] initWithSnapshot:child];
+                // Hmm..
+                if (!([request accepted] && ([[NSDate date] timeIntervalSince1970] - [request timestamp]) > FIVE_MINUTES)) {
+                    [self.outstandingFriendRequests addObject:request];
+                    NSLog(@"Received Friend Request! (from=%@, to=%@)", [request from], [request to]);
+                }
+            }
+        } else {
+            [self.outstandingFriendRequests removeAllObjects];
+        }
+        
+        [[NSNotificationCenter defaultCenter] postNotificationName:API_RECEIVED_FRIEND_REQUEST_EVENT object:nil];
+    }];
+    
+    [[[[self.firebase childByAppendingPath:@"users"] childByAppendingPath:[self.firebase authData].uid] childByAppendingPath:@"friends"] observeEventType:FEventTypeValue withBlock:^(FDataSnapshot *snapshot) {
+      
+        [self.confirmedFriends removeAllObjects];
+        for (FDataSnapshot *child in snapshot.children) {
+            [self.confirmedFriends addObject:[Friend friendWithFacebookId:child.value]];
+        }
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadMainTable" object:nil];
+    }];
+    
 }
 
 
@@ -166,11 +208,17 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
                                             NSString *accessToken = [[FBSDKAccessToken currentAccessToken] tokenString];
                                             [self.firebase authWithOAuthProvider:@"facebook" token:accessToken
                                                    withCompletionBlock:^(NSError *error, FAuthData *authData) {
+                                                       
+                                                       // Login!
+                                                       [[[[self.firebase childByAppendingPath:@"users"] childByAppendingPath:authData.uid] childByAppendingPath:@"active"] setValue:@"true"];
+                                                       
+                                                       
                                                        if (error) {
                                                            NSLog(@"[API] Login failed. %@", error);
                                                        } else {
                                                            NSLog(@"[API] Logged in! %@", authData);
                                                            [self loadExtendedUserInfoFromFacebook];
+                                                    
                                                        }
                                                    }];
                                         }
@@ -246,6 +294,17 @@ NSString *const API_REFRESH_SUCCESS_EVENT = @"APIRefreshSuccessEvent";
             
             if (response != nil) {
                 NSArray *venues = (NSArray *)[(NSDictionary *)[response objectForKey:@"response"] objectForKey:@"venues"];
+                
+                if (venues != nil && [venues count] == 0) {
+                    // Nothing returned
+                    NSString *description = @"Somewhere?";
+                    NSString *location = @"Couldn't get location.";
+                    [[[API sharedAPI] this_user] setLastKnownArea:description];
+                    [[[API sharedAPI] this_user] setLastKnownLocation:location];
+                    completion();
+                    return;
+                }
+                
                 NSDictionary *bestVenue = [venues objectAtIndex:0];
                 float minDistance = -1;
                 for (NSDictionary *venue in venues) {
@@ -431,6 +490,17 @@ static API *sharedAPI = nil;
     [request startWithCompletionHandler:^(FBSDKGraphRequestConnection *connection, id result, NSError *error) {
         if (!error) {
             [[API sharedAPI] setLoggedInUser:result[@"name"] token:result[@"id"]];
+            
+            // Mark this user as active / set facebook id.
+            Firebase *user = [[[[API sharedAPI] firebase] childByAppendingPath:@"users"] childByAppendingPath:[API sharedAPI].firebase.authData.uid];
+            [[user childByAppendingPath:@"active"] setValue:[NSNumber numberWithBool:YES]];
+            [[user childByAppendingPath:@"fbid"] setValue:result[@"id"]];
+            [[user childByAppendingPath:@"name"] setValue:result[@"name"]];
+            
+            // Update our global table of fbid -> user ids
+            Firebase *fbid = [[[[API sharedAPI] firebase] childByAppendingPath:@"fbids"] childByAppendingPath:result[@"id"]];
+            [fbid setValue:[user authData].uid];
+            [self setupListeners];
         }
     }];
 }

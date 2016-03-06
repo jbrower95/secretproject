@@ -19,6 +19,11 @@
     Friend *model;
 }
 
+@property (nonatomic, retain) IBOutlet UILabel *name;
+@property (nonatomic, retain) IBOutlet UILabel *location;
+@property (nonatomic, retain) IBOutlet UILabel *area;
+@property (nonatomic, retain) IBOutlet UIButton *whereAtButton;
+
 @property (nonatomic, retain) Friend *model;
 
 

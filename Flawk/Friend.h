@@ -23,6 +23,9 @@
     /* The last known area of this friend, as a string ('Brown University') */
     NSString *lastKnownArea;
     
+    /* The profile picture of this person from facebook */
+    NSString *profilePictureUrl;
+    
     /* The last known latitude of this friend. */
     double lastLatitude;
     
@@ -37,7 +40,8 @@
 - (id)initWithFacebookDict:(NSDictionary *)dict;
 
 - (NSDictionary *)toDictionary;
-- (id)initWithDictionary:(NSDictionary *)dictionary;
+
+- (void)loadFacebookProfilePictureUrlWithBlock:(void (^)(NSString *url))completion;
 
 @property (nonatomic, retain) NSString *name;
 @property (nonatomic, retain) NSString *fbid;
@@ -54,5 +58,7 @@
 - (BOOL)locationKnown;
 
 - (void)setLastLocation:(CGPoint)location place:(NSString *)place area:(NSString *)area;
+
++ (instancetype)friendWithFacebookId:(NSString *)fbid;
 
 @end
