@@ -10,13 +10,15 @@
 #import "API.h"
 #import <FBSDKCoreKit/FBSDKCoreKit.h>
 #import <FBSDKLoginKit/FBSDKLoginKit.h>
-
+#import <Batch/Batch.h>
 
 @interface AppDelegate ()
 
 @end
 
 @implementation AppDelegate
+
+@synthesize deviceToken;
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     
@@ -80,21 +82,39 @@
                          
     UIUserNotificationSettings *notificationSettings = [UIUserNotificationSettings settingsForTypes:UIUserNotificationTypeAlert categories:categories];
                          
-    [application registerUserNotificationSettings:notificationSettings];
-    [application registerForRemoteNotifications];
+    //[application registerUserNotificationSettings:notificationSettings];
+    //[application registerForRemoteNotifications];
     
     if ([launchOptions objectForKey: UIApplicationLaunchOptionsLocationKey] != nil) {
         // this was started because of a boundary crossing. set up the manager to receive the notification.
         [[API sharedAPI] initLocations];
     }
     
+    [BatchPush setupPush];
+    [Batch startWithAPIKey:@"DEV56DCC99EA675ECD595B1AC57E43"];
+    [BatchPush registerForRemoteNotificationsWithCategories:categories];
+    
     return [[FBSDKApplicationDelegate sharedInstance] application:application
                                     didFinishLaunchingWithOptions:launchOptions];
 }
 
-- (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
+- (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)token {
     // Store the deviceToken in the current Installation and save it to Parse
+   
+    self.deviceToken = [[[[token description]
+                         stringByReplacingOccurrencesOfString: @"<" withString: @""]
+                        stringByReplacingOccurrencesOfString: @">" withString: @""]
+                       stringByReplacingOccurrencesOfString: @" " withString: @""];
     
+    // Update our token
+    if ([[[API sharedAPI] firebase] authData] != nil) {
+        NSString *uid = [[API sharedAPI] firebase].authData.uid;
+        [[[[[API sharedAPI].firebase childByAppendingPath:@"users"] childByAppendingPath:uid] childByAppendingPath:@"push_token"] setValue:self.deviceToken withCompletionBlock:^(NSError *error, Firebase *ref) {
+            if (error) {
+                NSLog(@"[API] Error - Couldn't update device token.");
+            }
+        }];
+    }
 }
 
 
@@ -115,7 +135,9 @@ forRemoteNotification:(NSDictionary *)userInfo withResponseInfo:(NSDictionary *)
         } else if ([identifier isEqualToString:@"sendLocationAction"]) {
             NSLog(@"%@", userInfo);
             
-            [[API sharedAPI] shareLocationWithUser:[[Friend alloc] initWithName:nil fbId:from] completion:completionHandler];
+            [[API sharedAPI] shareLocationWithUser:[[Friend alloc] initWithName:nil fbId:from] completion:^(BOOL success, NSError *error) {
+                completionHandler();
+            }];
         }
     } else {
         completionHandler();

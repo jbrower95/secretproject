@@ -109,7 +109,7 @@
     }
     
     [[API sharedAPI] getLocationAndAreaWithBlock:^{
-        [[API sharedAPI] shareLocationWithUsers:selections completion:^(BOOL success) {
+        /*[[API sharedAPI] shareLocationWithUsers:selections completion:^(BOOL success) {
             if (success) {
                 // woah
                 dispatch_async(dispatch_get_main_queue(), ^{
@@ -123,7 +123,7 @@
                     [tableView reloadData];
                 });
             }
-        }];
+        }];*/
     }];
 }
 
@@ -149,7 +149,7 @@
             
             
             [[API sharedAPI] getLocationAndAreaWithBlock:^{
-                [[API sharedAPI] shareLocationWithUsers:selections completion:^(BOOL success) {
+                /*[[API sharedAPI] shareLocationWithUsers:selections completion:^(BOOL success) {
                     if (success) {
                         // woah
                         dispatch_async(dispatch_get_main_queue(), ^{
@@ -165,7 +165,7 @@
                             [tableView reloadData];
                         });
                     }
-                }];
+                }];*/
             }];
             
             return;

@@ -26,6 +26,7 @@
     
     CGFloat offset;
 }
+
 @property (nonatomic, strong) CLLocationManager *manager;
 
 - (IBAction)addFriends:(id)sender;

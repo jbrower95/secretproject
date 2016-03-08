@@ -9,6 +9,7 @@ pod 'FBSDKCoreKit'
 pod 'FBSDKShareKit'
 pod 'FBSDKLoginKit'
 pod 'BBBadgeBarButtonItem'
+pod 'Batch', '~> 1.5'
 end
 
 target 'FlawkTests' do

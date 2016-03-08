@@ -8,21 +8,27 @@
 
 #import <Foundation/Foundation.h>
 #import <CoreLocation/CoreLocation.h>
+#import <Firebase/Firebase.h>
+#import "Friend.h"
+
 @interface PersistentCheckin : NSObject <NSCoding> {
     CLRegion *region;
     NSString *location;
     NSString *name;
     NSMutableArray *friends;
+    Friend *user;
+    int timestamp;
 }
 
-- (id)initWithRegion:(CLRegion *)region location:(NSString *)location name:(NSString *)name friends:(NSMutableArray *)friends;
+- (id)initWithRegion:(CLRegion *)region location:(NSString *)location name:(NSString *)name friends:(NSMutableArray *)friends timestamp:(int)timestamp user:(Friend *)user;
 
-/* Creates a checkin object on the server, marks all other checkins as non current and makes this one current. */
-- (void)markActive;
++ (instancetype)fromSnapshot:(FDataSnapshot *)snapshot ofFriend:(Friend *)user;
 
 @property (nonatomic, retain) CLRegion *region;
 @property (nonatomic, retain) NSString *location;
 @property (nonatomic, retain) NSString *name;
 @property (nonatomic, retain) NSMutableArray *friends;
+@property (nonatomic, assign) int timestamp;
+@property (nonatomic, retain) Friend *user;
 
 @end

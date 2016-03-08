@@ -28,6 +28,8 @@ FOUNDATION_EXPORT NSString *const API_RECEIVED_FRIEND_REQUEST_EVENT;
     NSMutableArray<PersistentCheckin *> *checkins;
     LocationDaemon *locationDaemon;
     Firebase *firebase;
+    
+    NSMutableArray<NSNumber *> *friendHandles;
 }
 
 @property (nonatomic, retain) Firebase *firebase;
@@ -38,7 +40,7 @@ FOUNDATION_EXPORT NSString *const API_RECEIVED_FRIEND_REQUEST_EVENT;
 @property (nonatomic, retain) NSMutableArray<PersistentCheckin *> *checkins;
 @property (nonatomic, retain) NSMutableArray<Request *> *outstandingFriendRequests;
 @property (nonatomic, retain) NSMutableArray<Request *> *sentFriendRequests;
-
+@property (nonatomic, retain) NSMutableArray<NSNumber *> *friendHandles;
 /* Gets all friends from Facebook. */
 - (void)getAllFriendsWithBlock:(void(^)(NSArray *friends, NSError *error))block;
 
@@ -46,7 +48,7 @@ FOUNDATION_EXPORT NSString *const API_RECEIVED_FRIEND_REQUEST_EVENT;
 - (void)checkinToPlace:(NSString *)place atLongitude:(float)longitude atLatitude:(float)latitude withBlock:(void(^)(NSError *error))block;
 
 /* Sends your location to another user. */
-- (void)shareLocationWithUser:(Friend *)user;
+- (void)shareLocationWithUser:(Friend *)user completion:(void (^)(BOOL success, NSError *error))completionHandler;
 
 /* Returns true if the user is logged in (to facebook) */
 - (BOOL)isLoggedIn;
@@ -61,7 +63,7 @@ FOUNDATION_EXPORT NSString *const API_RECEIVED_FRIEND_REQUEST_EVENT;
 - (void)initParse;
 
 /* Request where at */
-- (void)requestWhereAt:(Friend *)other;
+- (void)requestWhereAt:(Friend *)other completion:(void (^)())completion;
 
 /* The shared API access */
 + (instancetype)sharedAPI;
@@ -71,13 +73,11 @@ FOUNDATION_EXPORT NSString *const API_RECEIVED_FRIEND_REQUEST_EVENT;
 /* Handles a push notification */
 - (void)handlePush:(NSDictionary *)push;
 
-- (void)shareLocationWithUser:(Friend *)user completion:(void (^)())completionHandler;
-
 - (void)sendMessageToUser:(Friend *)pal content:(NSString *)text completionHandler:(void (^)())completionHandler;
 
 - (void)getLocationAndAreaWithBlock:(void (^)())completion;
 
-- (void)shareLocationWithUsers:(NSSet *)users completion:(void (^)(BOOL))completionHandler;
+- (void)shareLocationWithUsers:(NSMutableSet *)users completion:(void (^)(BOOL, NSError*))completionHandler;
 
 - (void)startMonitoringRegion:(CLRegion *)region withLocationName:(NSString *)name area:(NSString *)area friends:(NSSet *)friends;
 

@@ -42,6 +42,15 @@ THE SOFTWARE.</string>
 		</dict>
 		<dict>
 			<key>FooterText</key>
+			<string>Copyright &#169; 2015 Batch.com
+</string>
+			<key>Title</key>
+			<string>Batch</string>
+			<key>Type</key>
+			<string>PSGroupSpecifier</string>
+		</dict>
+		<dict>
+			<key>FooterText</key>
 			<string>BSD License
 
 For Bolts software

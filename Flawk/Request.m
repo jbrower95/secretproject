@@ -22,8 +22,10 @@
             return;
         }
         
+        NSString *fromid = [NSString stringWithFormat:@"facebook:%@", self.from];
+        
         /* Add the friend to your list */
-        [[[[[[[API sharedAPI] firebase] childByAppendingPath:@"users"] childByAppendingPath:[API sharedAPI].firebase.authData.uid] childByAppendingPath:@"friends"] childByAutoId] setValue:self.from];
+        [[[[[[[API sharedAPI] firebase] childByAppendingPath:@"users"] childByAppendingPath:[API sharedAPI].firebase.authData.uid] childByAppendingPath:@"friends"] childByAppendingPath:fromid] setValue:[NSNumber numberWithBool:true]];
         
         /* Add the friend to your OTHER friend's friends list. */
         FQuery *query = [[[[API sharedAPI] firebase] childByAppendingPath:@"fbids"] queryOrderedByKey];
@@ -40,7 +42,7 @@
             
             // Add ourselves
             NSLog(@"[Friend Request] Adding ourselves to the other persons friendlist.");
-            [[[[[[[API sharedAPI] firebase] childByAppendingPath:@"users"] childByAppendingPath:uid] childByAppendingPath:@"friends"] childByAutoId] setValue:[API sharedAPI].this_user.fbid withCompletionBlock:^(NSError *error, Firebase *ref) {
+            [[[[[[[API sharedAPI] firebase] childByAppendingPath:@"users"] childByAppendingPath:uid] childByAppendingPath:@"friends"] childByAppendingPath:[API sharedAPI].firebase.authData.uid] setValue:[NSNumber numberWithBool:true] withCompletionBlock:^(NSError *error, Firebase *ref) {
                 NSLog(@"[Friend Request] All done (%@, %@)",uid, error);
                 [self setAccepted:true];
                 completion(error == nil, error);

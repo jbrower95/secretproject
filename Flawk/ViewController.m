@@ -97,6 +97,7 @@
     });
 }
 
+
 - (void)reload:(NSNotification *)not {
     dispatch_async(dispatch_get_main_queue(), ^{
         [tableView reloadData];
@@ -147,9 +148,9 @@
     
     Friend *f = [[Friend alloc] initWithName:[info objectForKey:@"username"] fbId:[info objectForKey:@"facebookId"]];
     
-    if (f != nil) {
-        [[API sharedAPI] requestWhereAt:f];
-    }
+    /*if (f != nil) {
+        [[API sharedAPI] requestWhereAt:<#(Friend *)#> completion:<#^(void)completion#>
+    }*/
 }
 
 - (void)acknowledgeRequest:(NSNotification *)pushNotification {
@@ -183,32 +184,48 @@
     if (userInfo != nil) {
         
         NSString *senderId = [userInfo objectForKey:@"from"];
+        NSString *requestId = [userInfo objectForKey:@"id"];
+        Friend *friend = [Friend friendWithFacebookId:senderId];
         
-        for (Friend *friend in [[API sharedAPI] friends]) {
-            if ([senderId isEqualToString:[friend fbid]]) {
-                // Found friend. Show a prompt.
-                UIAlertController *controller = [UIAlertController alertControllerWithTitle:[NSString stringWithFormat:@"%@ wants to know where you're at!", [friend name]] message:nil preferredStyle:UIAlertControllerStyleAlert];
-                
-                [controller addAction:[UIAlertAction actionWithTitle:@"Share" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-                    // share location
-                    
-                    dispatch_async(dispatch_get_main_queue(), ^{
-                        [[API sharedAPI] getLocationAndAreaWithBlock:^{
-                            [[API sharedAPI] shareLocationWithUser:friend];
-                        }];
-                    });
-                    
-                    
-                }]];
-                
-                [controller addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil]];
-                
-                
-                [self presentViewController:controller animated:YES completion:nil];
-            }
+        if (friend == nil) {
+            // Received request from unknown friend. Delete.
         }
         
-    }    
+        // Found friend. Show a prompt.
+        UIAlertController *controller = [UIAlertController alertControllerWithTitle:[NSString stringWithFormat:@"%@ wants to know where you're at!", [friend nickname]] message:nil preferredStyle:UIAlertControllerStyleAlert];
+        
+        [controller addAction:[UIAlertAction actionWithTitle:@"Share" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+            // share location
+            
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [[API sharedAPI] getLocationAndAreaWithBlock:^{
+                    [[API sharedAPI] shareLocationWithUser:friend completion:^(BOOL success, NSError *error) {
+                        if (success) {
+                            NSLog(@"Location shared!");
+                        } else {
+                            NSLog(@"Location failed to share: %@", error);
+                        }
+                    }];
+                }];
+            });
+            
+            
+        }]];
+        
+        [controller addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil]];
+        
+        
+        [self presentViewController:controller animated:YES completion:^{
+            // Delete the location request
+            [[[[[[[API sharedAPI] firebase] childByAppendingPath:@"users"] childByAppendingPath:[[API sharedAPI] firebase].authData.uid] childByAppendingPath:@"location_requests"] childByAppendingPath:requestId] removeValueWithCompletionBlock:^(NSError *error, Firebase *ref) {
+                if (error == nil) {
+                    NSLog(@"[API] Successfully dequeued friend request.");
+                } else {
+                    NSLog(@"[API] Couldn't dequeue location request.");
+                }
+            }];
+        }];
+    }
 }
 
 - (IBAction)addFriends:(id)sender {

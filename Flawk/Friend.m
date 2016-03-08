@@ -27,8 +27,22 @@
     return self;
 }
 
+- (NSString *)nickname {
+    if ([self name] == nil) {
+        return @"";
+    }
+    
+    NSArray *parts = [[self name] componentsSeparatedByCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+    if (parts.count > 0) {
+        return parts[0];
+    } else {
+        return @"Someone";
+    }
+}
+
 + (instancetype)friendWithFacebookId:(NSString *)fbid {
-for (Friend *friend in [[API sharedAPI] friends]) {
+    
+    for (Friend *friend in [[API sharedAPI] friends]) {
         if ([[friend fbid] isEqualToString:fbid]) {
             return friend;
         }

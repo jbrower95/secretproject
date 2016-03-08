@@ -14,8 +14,8 @@
 @property (nonatomic, retain) IBOutlet UILabel *nameLabel;
 @property (nonatomic, retain) IBOutlet UIButton *whereAtButton;
 @property (nonatomic, retain) IBOutlet UIButton *joinMeButton;
-
+@property (nonatomic, retain) Friend *fr;
 - (void)applyFriend:(Friend *)f;
-
+- (IBAction)whereAtPressed:(id)sender;
 + (CGFloat)preferredHeightInView:(UIView *)parent;
 @end

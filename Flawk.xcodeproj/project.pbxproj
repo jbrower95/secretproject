@@ -20,6 +20,7 @@
 		D02EBC671C1397BD00D037CB /* ShareLocationViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D02EBC661C1397BD00D037CB /* ShareLocationViewController.m */; };
 		D038324A1C10ED320001BA79 /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D03832491C10ED320001BA79 /* CoreLocation.framework */; };
 		D038324D1C113C670001BA79 /* FriendLocationController.m in Sources */ = {isa = PBXBuildFile; fileRef = D038324C1C113C670001BA79 /* FriendLocationController.m */; };
+		D05CC7221C8D19050064DCB8 /* PushMaster.m in Sources */ = {isa = PBXBuildFile; fileRef = D05CC7211C8D19050064DCB8 /* PushMaster.m */; };
 		D0B6A68D1C0FB2EB007200E5 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = D0B6A68C1C0FB2EB007200E5 /* main.m */; };
 		D0B6A6901C0FB2EB007200E5 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = D0B6A68F1C0FB2EB007200E5 /* AppDelegate.m */; };
 		D0B6A6931C0FB2EB007200E5 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D0B6A6921C0FB2EB007200E5 /* ViewController.m */; };
@@ -79,6 +80,8 @@
 		D03832491C10ED320001BA79 /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
 		D038324B1C113C670001BA79 /* FriendLocationController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FriendLocationController.h; sourceTree = "<group>"; };
 		D038324C1C113C670001BA79 /* FriendLocationController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FriendLocationController.m; sourceTree = "<group>"; };
+		D05CC7201C8D19050064DCB8 /* PushMaster.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PushMaster.h; sourceTree = "<group>"; };
+		D05CC7211C8D19050064DCB8 /* PushMaster.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PushMaster.m; sourceTree = "<group>"; };
 		D0B6A6881C0FB2EB007200E5 /* Flawk.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Flawk.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D0B6A68C1C0FB2EB007200E5 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		D0B6A68E1C0FB2EB007200E5 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -182,10 +185,8 @@
 		D0262C0A1C8B8DDA00BE506C /* Cell */ = {
 			isa = PBXGroup;
 			children = (
-				D0262C0B1C8B8DE800BE506C /* FriendRequestPendingCell.h */,
-				D0262C0C1C8B8DE800BE506C /* FriendRequestPendingCell.m */,
-				D0262C0E1C8B912D00BE506C /* AddFriendCell.h */,
-				D0262C0F1C8B912D00BE506C /* AddFriendCell.m */,
+				D05CC7241C8D20150064DCB8 /* Main Page */,
+				D05CC7231C8D20050064DCB8 /* Add Friends Page */,
 			);
 			name = Cell;
 			sourceTree = "<group>";
@@ -203,6 +204,45 @@
 				D0011A871C8A695B00D07465 /* AddFriendsViewController.m */,
 			);
 			name = Controllers;
+			sourceTree = "<group>";
+		};
+		D05CC71F1C8D18CE0064DCB8 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				D0B6A6C41C0FC292007200E5 /* API.h */,
+				D0B6A6C51C0FC292007200E5 /* API.m */,
+				D0E169631C27BCAC001E4D06 /* LocationDaemon.h */,
+				D0E169641C27BCAC001E4D06 /* LocationDaemon.m */,
+				D0011A8A1C8A8ECB00D07465 /* FeatureConfig.h */,
+				D0011A8B1C8A8ECB00D07465 /* FeatureConfig.m */,
+				D05CC7201C8D19050064DCB8 /* PushMaster.h */,
+				D05CC7211C8D19050064DCB8 /* PushMaster.m */,
+			);
+			name = Services;
+			sourceTree = "<group>";
+		};
+		D05CC7231C8D20050064DCB8 /* Add Friends Page */ = {
+			isa = PBXGroup;
+			children = (
+				D0262C0B1C8B8DE800BE506C /* FriendRequestPendingCell.h */,
+				D0262C0C1C8B8DE800BE506C /* FriendRequestPendingCell.m */,
+				D0262C0E1C8B912D00BE506C /* AddFriendCell.h */,
+				D0262C0F1C8B912D00BE506C /* AddFriendCell.m */,
+			);
+			name = "Add Friends Page";
+			sourceTree = "<group>";
+		};
+		D05CC7241C8D20150064DCB8 /* Main Page */ = {
+			isa = PBXGroup;
+			children = (
+				D0B6A6C81C0FC741007200E5 /* LocationKnownCell.h */,
+				D0B6A6C91C0FC741007200E5 /* LocationKnownCell.m */,
+				D0262C141C8BF7FA00BE506C /* LocationNotKnownCell.h */,
+				D0262C151C8BF7FA00BE506C /* LocationNotKnownCell.m */,
+				D0262C171C8CAA5A00BE506C /* MapCell.h */,
+				D0262C181C8CAA5A00BE506C /* MapCell.m */,
+			);
+			name = "Main Page";
 			sourceTree = "<group>";
 		};
 		D0B6A67F1C0FB2EB007200E5 = {
@@ -231,6 +271,7 @@
 		D0B6A68A1C0FB2EB007200E5 /* Flawk */ = {
 			isa = PBXGroup;
 			children = (
+				D05CC71F1C8D18CE0064DCB8 /* Services */,
 				D0262C0A1C8B8DDA00BE506C /* Cell */,
 				D0011A8D1C8AB0BC00D07465 /* Util */,
 				D0011A891C8A8EAD00D07465 /* Model */,
@@ -277,12 +318,6 @@
 		D0B6A6C01C0FC13C007200E5 /* API */ = {
 			isa = PBXGroup;
 			children = (
-				D0B6A6C41C0FC292007200E5 /* API.h */,
-				D0B6A6C51C0FC292007200E5 /* API.m */,
-				D0E169631C27BCAC001E4D06 /* LocationDaemon.h */,
-				D0E169641C27BCAC001E4D06 /* LocationDaemon.m */,
-				D0011A8A1C8A8ECB00D07465 /* FeatureConfig.h */,
-				D0011A8B1C8A8ECB00D07465 /* FeatureConfig.m */,
 			);
 			name = API;
 			sourceTree = "<group>";
@@ -290,12 +325,6 @@
 		D0B6A6C71C0FC72D007200E5 /* View */ = {
 			isa = PBXGroup;
 			children = (
-				D0B6A6C81C0FC741007200E5 /* LocationKnownCell.h */,
-				D0B6A6C91C0FC741007200E5 /* LocationKnownCell.m */,
-				D0262C141C8BF7FA00BE506C /* LocationNotKnownCell.h */,
-				D0262C151C8BF7FA00BE506C /* LocationNotKnownCell.m */,
-				D0262C171C8CAA5A00BE506C /* MapCell.h */,
-				D0262C181C8CAA5A00BE506C /* MapCell.m */,
 			);
 			name = View;
 			sourceTree = "<group>";
@@ -490,6 +519,7 @@
 				D0011A8C1C8A8ECB00D07465 /* FeatureConfig.m in Sources */,
 				D0B6A6931C0FB2EB007200E5 /* ViewController.m in Sources */,
 				D0262C161C8BF7FA00BE506C /* LocationNotKnownCell.m in Sources */,
+				D05CC7221C8D19050064DCB8 /* PushMaster.m in Sources */,
 				D0011A881C8A695B00D07465 /* AddFriendsViewController.m in Sources */,
 				D0011A901C8AB0E800D07465 /* NSDate+Prettify.m in Sources */,
 				D0262C0D1C8B8DE800BE506C /* FriendRequestPendingCell.m in Sources */,
@@ -647,7 +677,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				FRAMEWORK_SEARCH_PATHS = "~/Documents/iosframework/**";
+				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				INFOPLIST_FILE = Flawk/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -664,7 +694,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				FRAMEWORK_SEARCH_PATHS = "~/Documents/iosframework/**";
+				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				INFOPLIST_FILE = Flawk/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";

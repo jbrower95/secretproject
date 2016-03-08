@@ -56,7 +56,7 @@
 - (CGPoint)getLastLocation;
 
 - (BOOL)locationKnown;
-
+- (NSString *)nickname;
 - (void)setLastLocation:(CGPoint)location place:(NSString *)place area:(NSString *)area;
 
 + (instancetype)friendWithFacebookId:(NSString *)fbid;
