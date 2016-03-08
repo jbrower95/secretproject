@@ -9,7 +9,10 @@
 #import <UIKit/UIKit.h>
 #import <MapKit/MapKit.h>
 
-@interface MapCell : UITableViewCell <MKMapViewDelegate>
+@interface MapCell : UITableViewCell <MKMapViewDelegate> {
+    BOOL setup;
+    BOOL firstUpdate;
+}
 @property (nonatomic, retain) IBOutlet MKMapView *mapView;
 + (CGFloat)preferredHeightInView:(UIView *)parent;
 - (id)init;

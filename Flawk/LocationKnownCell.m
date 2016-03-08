@@ -47,17 +47,11 @@
 - (void)applyFriend:(Friend *)f {
     self.model = f;
     if (f != nil) {
-        [name setText:[f name]];
+        [self.name setText:[f name]];
         
-        BOOL locationKnown = [f locationKnown];
-        
-        [location setHidden:!locationKnown];
-        [area setHidden:!locationKnown];
-        [whereAtButton setHidden:locationKnown];
-        
-        if (locationKnown) {
-            [location setText:[f lastKnownLocation]];
-            [area setText:[f lastKnownArea]];
+        if ([self.model locationKnown]) {
+            [self.location setText:[NSString stringWithFormat:@"in %@", [f lastCheckin].location]];
+            [self.area setText:[f lastCheckin].name];
             self.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
             self.selectionStyle = UITableViewCellSelectionStyleDefault;
         } else {

@@ -8,6 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
+#import "PersistentCheckin.h"
 
 @interface Friend : NSObject<NSCoding> {
     
@@ -34,6 +35,9 @@
     
     /* The timestamp of the last known location. */
     double lastTimestamp;
+    
+    /* The last checkin associated with this person */
+    PersistentCheckin *lastCheckin;
 }
 
 - (id)initWithName:(NSString *)name fbId:(NSString *)fbId;
@@ -43,6 +47,7 @@
 
 - (void)loadFacebookProfilePictureUrlWithBlock:(void (^)(NSString *url))completion;
 
+@property (nonatomic, retain) PersistentCheckin *lastCheckin;
 @property (nonatomic, retain) NSString *name;
 @property (nonatomic, retain) NSString *fbid;
 

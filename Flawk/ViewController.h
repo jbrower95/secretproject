@@ -9,6 +9,7 @@
 #import <UIKit/UIKit.h>
 #import "Friend.h"
 #import "BBBadgeBarButtonItem/BBBadgeBarButtonItem.h"
+#import "AudioHelper.h"
 
 @interface ViewController : UIViewController<UITableViewDataSource, UITableViewDelegate, NSURLSessionDataDelegate, CLLocationManagerDelegate> {
     

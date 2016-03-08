@@ -32,19 +32,12 @@
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(receivedFriendRequest:) name:API_RECEIVED_FRIEND_REQUEST_EVENT object:nil];
     offset = 0;
     
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(parseFailure:) name:@"ParseFailure" object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(parseSuccess:) name:@"ParseSuccess" object:nil];
-    
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(whereAtRequest:) name:@"WhereAtRequest" object:nil];
-    
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(locationRequest:) name:@"LocationRequest" object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(forgetRequest:) name:@"ForgetRequest" object:nil];
-    
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(acknowledgeRequest:) name:@"AcknowledgeRequest" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(locationAvailable:) name:@"LocationAvailable" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(messageReceived:) name:@"MessageReceived" object:nil];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reload:) name:@"ReloadMainTable" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reload:) name:@"ReloadCheckins" object:nil];
     
     
     self.navigationItem.title = @"Flawk";
@@ -117,11 +110,6 @@
         [self locationAvailable:nil];
     }
     
-    [[API sharedAPI] getLocationAndAreaWithBlock:^{
-        //NSString *location = [[API sharedAPI] this_user].lastKnownLocation;
-        //NSString *area = [[API sharedAPI] this_user].lastKnownLocation;
-    }];
-    
     [self receivedFriendRequest:nil];
 }
 
@@ -143,38 +131,6 @@
     [[API sharedAPI] login];
 }
 
-- (void)whereAtRequest:(NSNotification *)friendRequest {
-    NSDictionary *info = [friendRequest userInfo];
-    
-    Friend *f = [[Friend alloc] initWithName:[info objectForKey:@"username"] fbId:[info objectForKey:@"facebookId"]];
-    
-    /*if (f != nil) {
-        [[API sharedAPI] requestWhereAt:<#(Friend *)#> completion:<#^(void)completion#>
-    }*/
-}
-
-- (void)acknowledgeRequest:(NSNotification *)pushNotification {
-    NSDictionary *userInfo = [pushNotification userInfo];
-    
-    // parse the information that we received
-    CGFloat lon = [[userInfo objectForKey:@"lon"] floatValue];
-    CGFloat lat = [[userInfo objectForKey:@"lat"] floatValue];
-    
-    NSString *location = [userInfo objectForKey:@"location"];
-    NSString *area = [userInfo objectForKey:@"area"];
-    
-    NSString *fbId = [userInfo objectForKey:@"from"];
-    
-    for (Friend *friend in [[API sharedAPI] friends]) {
-        if ([fbId isEqualToString:[friend fbid]]) {
-            [friend setLastLocation:CGPointMake(lon, lat) place:location area:area];
-            [[API sharedAPI] save];
-            break;
-        }
-    }
-    
-    [tableView reloadData];
-}
 
 
 - (void)locationRequest:(NSNotification *)pushNotification {
@@ -385,6 +341,10 @@
 
 
 - (void)tableView:(UITableView *)table didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    
+    if (indexPath.row == 0) {
+        return;
+    }
     
     NSString *segue = @"FriendLocationSegue";
     

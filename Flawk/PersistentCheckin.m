@@ -56,7 +56,7 @@
     
     CLCircularRegion *region = [[CLCircularRegion alloc] initWithCenter:CLLocationCoordinate2DMake([[snapshot childSnapshotForPath:@"lat"].value floatValue], [[snapshot childSnapshotForPath:@"lon"].value floatValue]) radius:1 identifier:user.name];
     
-    PersistentCheckin *checkin = [[PersistentCheckin alloc] initWithRegion:region location:[snapshot childSnapshotForPath:@"location"].value name:[snapshot childSnapshotForPath:@"name"].value friends:nil timestamp:[[snapshot childSnapshotForPath:@"timestamp"].value intValue] user:user];
+    PersistentCheckin *checkin = [[PersistentCheckin alloc] initWithRegion:region location:[snapshot childSnapshotForPath:@"area"].value name:[snapshot childSnapshotForPath:@"location"].value friends:nil timestamp:[[snapshot childSnapshotForPath:@"timestamp"].value intValue] user:user];
     
     return checkin;
 }

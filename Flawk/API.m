@@ -46,13 +46,13 @@ NSString *const FIREBASE_URI = @"https://flawkdb.firebaseio.com";
         NSLog(@"[API] Couldn't reload friends.");
     }
     
-    NSData *checkinsData = [[NSUserDefaults standardUserDefaults] objectForKey:@"checkins"];
+    /*NSData *checkinsData = [[NSUserDefaults standardUserDefaults] objectForKey:@"checkins"];
     if (checkinsData != nil) {
         self.checkins = (NSMutableArray *)[NSKeyedUnarchiver unarchiveObjectWithData:checkinsData];
         NSLog(@"[API] Reloaded %lu checkins.", [self.checkins count]);
     } else {
         NSLog(@"[API] Couldn't reload checkins.");
-    }
+    }*/
     
     NSData *userData = [[NSUserDefaults standardUserDefaults] objectForKey:@"this_user"];
     
@@ -517,18 +517,23 @@ static API *sharedAPI = nil;
         NSLog(@"[API] Saving friends...");
         [[NSUserDefaults standardUserDefaults] setObject:[NSKeyedArchiver archivedDataWithRootObject:self.friends] forKey:@"friends"];
     }
-    if (self.checkins) {
+    /*if (self.checkins) {
         NSLog(@"[API] Saving checkins...");
         [[NSUserDefaults standardUserDefaults] setObject:[NSKeyedArchiver archivedDataWithRootObject:self.checkins] forKey:@"checkins"];
-    }
+    }*/
     
     [[NSUserDefaults standardUserDefaults] synchronize];
 }
 
 - (void)locationManager:(CLLocationManager *)manager
      didUpdateLocations:(NSArray<CLLocation *> *)locations {
-    NSLog(@"[API] Updating location.");
+    NSLog(@"[API] Got location.");
     CLLocation *first = [locations lastObject];
+    
+    if (first.horizontalAccuracy < 0) {
+        NSLog(@"[API] Location was inaccurate. Ignoring.");
+        return;
+    }
     
     float oldLong = [self.this_user lastLongitude];
     float oldLat = [self.this_user lastLatitude];
@@ -542,6 +547,10 @@ static API *sharedAPI = nil;
         NSLog(@"[API] First location!");
         [[NSNotificationCenter defaultCenter] postNotificationName:@"LocationAvailable" object:nil];
     }
+    
+    [self getLocationAndAreaWithBlock:^{
+        NSLog(@"[API] Loaded initial location: location=%@, area=%@", self.this_user.lastKnownLocation, self.this_user.lastKnownArea);
+    }];
 }
 
 -(void)locationManager:(CLLocationManager *)manager didFailWithError:(NSError *)error{

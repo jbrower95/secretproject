@@ -9,7 +9,8 @@
 #import <Foundation/Foundation.h>
 #import <CoreLocation/CoreLocation.h>
 #import <Firebase/Firebase.h>
-#import "Friend.h"
+
+@class Friend;
 
 @interface PersistentCheckin : NSObject <NSCoding> {
     CLRegion *region;

@@ -33,6 +33,8 @@
 		D0B6A6C31C0FC147007200E5 /* Friend.m in Sources */ = {isa = PBXBuildFile; fileRef = D0B6A6C21C0FC147007200E5 /* Friend.m */; };
 		D0B6A6C61C0FC292007200E5 /* API.m in Sources */ = {isa = PBXBuildFile; fileRef = D0B6A6C51C0FC292007200E5 /* API.m */; };
 		D0B6A6CA1C0FC741007200E5 /* LocationKnownCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D0B6A6C91C0FC741007200E5 /* LocationKnownCell.m */; };
+		D0DCC0C11C8F5439008E2ED4 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0DCC0C01C8F5439008E2ED4 /* AudioToolbox.framework */; };
+		D0DCC0C41C8F5446008E2ED4 /* AudioHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = D0DCC0C31C8F5446008E2ED4 /* AudioHelper.m */; };
 		D0E169651C27BCAC001E4D06 /* LocationDaemon.m in Sources */ = {isa = PBXBuildFile; fileRef = D0E169641C27BCAC001E4D06 /* LocationDaemon.m */; };
 		D0F11DD31C8B7E91001C884B /* Request.m in Sources */ = {isa = PBXBuildFile; fileRef = D0F11DD21C8B7E91001C884B /* Request.m */; };
 /* End PBXBuildFile section */
@@ -105,6 +107,9 @@
 		D0B6A6C51C0FC292007200E5 /* API.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = API.m; sourceTree = "<group>"; };
 		D0B6A6C81C0FC741007200E5 /* LocationKnownCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LocationKnownCell.h; sourceTree = "<group>"; };
 		D0B6A6C91C0FC741007200E5 /* LocationKnownCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LocationKnownCell.m; sourceTree = "<group>"; };
+		D0DCC0C01C8F5439008E2ED4 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
+		D0DCC0C21C8F5446008E2ED4 /* AudioHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioHelper.h; sourceTree = "<group>"; };
+		D0DCC0C31C8F5446008E2ED4 /* AudioHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AudioHelper.m; sourceTree = "<group>"; };
 		D0E169631C27BCAC001E4D06 /* LocationDaemon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LocationDaemon.h; sourceTree = "<group>"; };
 		D0E169641C27BCAC001E4D06 /* LocationDaemon.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LocationDaemon.m; sourceTree = "<group>"; };
 		D0F11DD11C8B7E91001C884B /* Request.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Request.h; sourceTree = "<group>"; };
@@ -117,6 +122,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D0DCC0C11C8F5439008E2ED4 /* AudioToolbox.framework in Frameworks */,
 				D038324A1C10ED320001BA79 /* CoreLocation.framework in Frameworks */,
 				D0B6A6BF1C0FB384007200E5 /* MapKit.framework in Frameworks */,
 				737A5B1586B78B2937680178 /* libPods-Flawk.a in Frameworks */,
@@ -143,6 +149,7 @@
 		286DCAAE3C39B623381E7939 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				D0DCC0C01C8F5439008E2ED4 /* AudioToolbox.framework */,
 				D03832491C10ED320001BA79 /* CoreLocation.framework */,
 				75681DBF9636BCEEC48651FD /* libPods-Flawk.a */,
 			);
@@ -178,6 +185,8 @@
 				D0011A8F1C8AB0E800D07465 /* NSDate+Prettify.m */,
 				D0262C111C8B93F000BE506C /* UIImageView+Web.h */,
 				D0262C121C8B93F000BE506C /* UIImageView+Web.m */,
+				D0DCC0C21C8F5446008E2ED4 /* AudioHelper.h */,
+				D0DCC0C31C8F5446008E2ED4 /* AudioHelper.m */,
 			);
 			name = Util;
 			sourceTree = "<group>";
@@ -521,6 +530,7 @@
 				D0262C161C8BF7FA00BE506C /* LocationNotKnownCell.m in Sources */,
 				D05CC7221C8D19050064DCB8 /* PushMaster.m in Sources */,
 				D0011A881C8A695B00D07465 /* AddFriendsViewController.m in Sources */,
+				D0DCC0C41C8F5446008E2ED4 /* AudioHelper.m in Sources */,
 				D0011A901C8AB0E800D07465 /* NSDate+Prettify.m in Sources */,
 				D0262C0D1C8B8DE800BE506C /* FriendRequestPendingCell.m in Sources */,
 				D0B6A6901C0FB2EB007200E5 /* AppDelegate.m in Sources */,

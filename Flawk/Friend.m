@@ -12,7 +12,7 @@
 
 @implementation Friend
 
-@synthesize name=_name, fbid=_fbId, lastLatitude, lastLongitude, lastKnownArea, lastTimestamp, lastKnownLocation;
+@synthesize name=_name, fbid=_fbId, lastLatitude, lastLongitude, lastKnownArea, lastTimestamp, lastKnownLocation, lastCheckin;
 
 - (id)initWithName:(NSString *)fullName fbId:(NSString *)fbId {
     
@@ -142,7 +142,19 @@
 }
 
 - (BOOL)locationKnown {
-    return lastTimestamp != -1;
+    if (self.lastCheckin) {
+        return YES;
+    }
+    
+    for (PersistentCheckin *checkin in [[API sharedAPI] checkins]) {
+        Friend *user = checkin.user;
+        if ([[user fbid] isEqualToString:self.fbid]) {
+            self.lastCheckin = checkin;
+            return YES;
+        }
+    }
+    
+    return NO;
 }
 
 - (NSString *)lastKnownArea {
