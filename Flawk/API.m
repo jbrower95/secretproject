@@ -23,7 +23,7 @@ NSString *const FIREBASE_URI = @"https://flawkdb.firebaseio.com";
 
 @synthesize manager; 
 
-@synthesize friends, this_user, checkins, firebase, outstandingFriendRequests, sentFriendRequests, confirmedFriends, friendHandles;
+@synthesize friends, this_user, checkins, firebase, locationChoices, outstandingFriendRequests, sentFriendRequests, confirmedFriends, friendHandles;
 
 - (id)init {
     if (self = [super init]) {
@@ -35,6 +35,7 @@ NSString *const FIREBASE_URI = @"https://flawkdb.firebaseio.com";
         self.confirmedFriends = [[NSMutableArray alloc] init];
         self.sentFriendRequests = [[NSMutableArray alloc] init];
         self.friendHandles = [[NSMutableArray alloc] init];
+        self.locationChoices = [[NSMutableArray alloc] init];
     }
 
     NSData *friendsData = [[NSUserDefaults standardUserDefaults] objectForKey:@"friends"];
@@ -133,22 +134,29 @@ NSString *const FIREBASE_URI = @"https://flawkdb.firebaseio.com";
     }
     
     [self.friendHandles removeAllObjects];
-    
+    NSLog(@"Reloading friend handles..");
     for (Friend *f in self.confirmedFriends) {
-        
+        NSLog(@"Subscribing to friend: %@", f.name);
         
         // start listening to this friend
         Firebase *checkins = [[[[self firebase] childByAppendingPath:@"users"] childByAppendingPath:[NSString stringWithFormat:@"facebook:%@", f.fbid]] childByAppendingPath:@"checkins"];
         
-        FirebaseHandle handle = [checkins observeEventType:FEventTypeChildAdded withBlock:^(FDataSnapshot *snapshot) {
-            PersistentCheckin *checkin = [PersistentCheckin fromSnapshot:snapshot ofFriend:f];
-            if (checkin != nil) {
-                
-                if ([self.checkins containsObject:checkin]) {
-                    [self.checkins removeObject:checkin];
+        FirebaseHandle handle = [checkins observeEventType:FEventTypeValue withBlock:^(FDataSnapshot *snapshot) {
+            
+            if (snapshot.exists) {
+                for (FDataSnapshot *child in snapshot.children) {
+                    PersistentCheckin *checkin = [PersistentCheckin fromSnapshot:child ofFriend:f];
+                    if (checkin != nil) {
+                        NSMutableArray *remove = [NSMutableArray array];
+                        for (PersistentCheckin *checkin in self.checkins) {
+                            if (checkin.user != nil && [checkin.user.fbid isEqualToString:f.fbid]) {
+                                [remove addObject:checkin];
+                            }
+                        }
+                        [self.checkins removeObjectsInArray:remove];
+                        [self.checkins addObject:checkin];
+                    }
                 }
-                
-                [self.checkins addObject:checkin];
             }
             
             [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadCheckins" object:nil];
@@ -173,12 +181,12 @@ NSString *const FIREBASE_URI = @"https://flawkdb.firebaseio.com";
             NSArray *newFriends = [parsedResult objectForKey:@"data"];
             
             if (newFriends != nil) {
-                NSLog(@"Parsing friends.");
                 [[API sharedAPI] parseFriends:newFriends];
                 if (block != nil) {
                     [self save];
                     block(self.friends, nil);
                 }
+                NSLog(@"Got facebook friends (%d)", self.friends != nil ? self.friends.count : -1);
             } else {
                 NSLog(@"No friends from Facebook.");
             }
@@ -276,7 +284,7 @@ NSString *const FIREBASE_URI = @"https://flawkdb.firebaseio.com";
 
 - (void)login {
     FBSDKLoginManager *facebookLogin = [[FBSDKLoginManager alloc] init];
-    [facebookLogin logInWithReadPermissions:@[@"email"]
+    [facebookLogin logInWithReadPermissions:@[@"email", @"user_friends"]
                                     handler:^(FBSDKLoginManagerLoginResult *facebookResult, NSError *facebookError) {
                                         if (facebookError) {
                                             NSLog(@"[API] Facebook login failed. Error: %@", facebookError);
@@ -284,6 +292,7 @@ NSString *const FIREBASE_URI = @"https://flawkdb.firebaseio.com";
                                             NSLog(@"[API] Facebook login got cancelled.");
                                         } else {
                                             NSString *accessToken = [[FBSDKAccessToken currentAccessToken] tokenString];
+                                            
                                             [self.firebase authWithOAuthProvider:@"facebook" token:accessToken
                                                    withCompletionBlock:^(NSError *error, FAuthData *authData) {
                                                        
@@ -377,7 +386,7 @@ NSString *const FIREBASE_URI = @"https://flawkdb.firebaseio.com";
             NSDictionary *response = [NSJSONSerialization JSONObjectWithData:data options:NULL error:&e];
             
             if (response != nil) {
-                NSArray *venues = (NSArray *)[(NSDictionary *)[response objectForKey:@"response"] objectForKey:@"venues"];
+                NSMutableArray *venues = [NSMutableArray arrayWithArray:(NSArray *)[(NSDictionary *)[response objectForKey:@"response"] objectForKey:@"venues"]];
                 
                 if (venues != nil && [venues count] == 0) {
                     // Nothing returned
@@ -399,6 +408,12 @@ NSString *const FIREBASE_URI = @"https://flawkdb.firebaseio.com";
                     }
                 }
                 
+                // Remove the best venue
+                [venues removeObject:bestVenue];
+                [self.locationChoices removeAllObjects];
+                
+                // Add all the other venues
+                [self.locationChoices addObjectsFromArray:venues];
                 
                 NSString *description;
                 NSString *location;
@@ -444,17 +459,7 @@ NSString *const FIREBASE_URI = @"https://flawkdb.firebaseio.com";
         
         [[[[[[[API sharedAPI] firebase] childByAppendingPath:@"users"] childByAppendingPath:[result value]] childByAppendingPath:@"location_requests"] childByAutoId] setValue:[[API sharedAPI] firebase].authData.uid];
         
-        /*dispatch_async(dispatch_get_main_queue(), ^{
-            // Alert this user
-            [PushMaster sendLocationRequestPushToUser:other completion:^(BOOL sent, NSError *error) {
-                if (sent) {
-                    NSLog(@"[API] Sent push notification!");
-                } else {
-                    NSLog(@"[API] Error - Didn't send push notification (%@)", error);
-                }
-            }];
-            completion();
-        });*/
+        completion();
     }];
 }
 
@@ -547,6 +552,9 @@ static API *sharedAPI = nil;
         NSLog(@"[API] First location!");
         [[NSNotificationCenter defaultCenter] postNotificationName:@"LocationAvailable" object:nil];
     }
+    
+    
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"NewLocationAvailable" object:nil];
     
     [self getLocationAndAreaWithBlock:^{
         NSLog(@"[API] Loaded initial location: location=%@, area=%@", self.this_user.lastKnownLocation, self.this_user.lastKnownArea);

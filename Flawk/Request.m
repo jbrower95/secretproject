@@ -14,7 +14,7 @@
 @synthesize to, from, timestamp, accepted;
 
 - (void)accept:(void (^)(BOOL success, NSError *error))completion {
-    NSString *totalId = [NSString stringWithFormat:@"%@%@", self.to, self.from];
+    NSString *totalId = [NSString stringWithFormat:@"%@%@", self.from, self.to];
     [[[[[[API sharedAPI] firebase] childByAppendingPath:@"requests"] childByAppendingPath:totalId] childByAppendingPath:@"accepted"] setValue:[NSNumber numberWithBool:true] withCompletionBlock:^(NSError *error, Firebase *ref) {
         
         if (error != nil) {

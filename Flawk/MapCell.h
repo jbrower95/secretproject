@@ -12,8 +12,13 @@
 @interface MapCell : UITableViewCell <MKMapViewDelegate> {
     BOOL setup;
     BOOL firstUpdate;
+    int selected;
+    UILabel *selectedLabel;
+    
 }
 @property (nonatomic, retain) IBOutlet MKMapView *mapView;
+@property (nonatomic, retain) IBOutlet UIScrollView *sidebar;
+
 + (CGFloat)preferredHeightInView:(UIView *)parent;
 - (id)init;
 - (void)setup;

@@ -20,6 +20,8 @@
 		D02EBC671C1397BD00D037CB /* ShareLocationViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D02EBC661C1397BD00D037CB /* ShareLocationViewController.m */; };
 		D038324A1C10ED320001BA79 /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D03832491C10ED320001BA79 /* CoreLocation.framework */; };
 		D038324D1C113C670001BA79 /* FriendLocationController.m in Sources */ = {isa = PBXBuildFile; fileRef = D038324C1C113C670001BA79 /* FriendLocationController.m */; };
+		D04031101C90C19700CA9F85 /* ChooseLocationController.m in Sources */ = {isa = PBXBuildFile; fileRef = D040310F1C90C19700CA9F85 /* ChooseLocationController.m */; };
+		D04031141C90C2B200CA9F85 /* LocationCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D04031131C90C2B200CA9F85 /* LocationCell.m */; };
 		D05CC7221C8D19050064DCB8 /* PushMaster.m in Sources */ = {isa = PBXBuildFile; fileRef = D05CC7211C8D19050064DCB8 /* PushMaster.m */; };
 		D0B6A68D1C0FB2EB007200E5 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = D0B6A68C1C0FB2EB007200E5 /* main.m */; };
 		D0B6A6901C0FB2EB007200E5 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = D0B6A68F1C0FB2EB007200E5 /* AppDelegate.m */; };
@@ -82,6 +84,10 @@
 		D03832491C10ED320001BA79 /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
 		D038324B1C113C670001BA79 /* FriendLocationController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FriendLocationController.h; sourceTree = "<group>"; };
 		D038324C1C113C670001BA79 /* FriendLocationController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FriendLocationController.m; sourceTree = "<group>"; };
+		D040310E1C90C19700CA9F85 /* ChooseLocationController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ChooseLocationController.h; sourceTree = "<group>"; };
+		D040310F1C90C19700CA9F85 /* ChooseLocationController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ChooseLocationController.m; sourceTree = "<group>"; };
+		D04031121C90C2B200CA9F85 /* LocationCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LocationCell.h; sourceTree = "<group>"; };
+		D04031131C90C2B200CA9F85 /* LocationCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LocationCell.m; sourceTree = "<group>"; };
 		D05CC7201C8D19050064DCB8 /* PushMaster.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PushMaster.h; sourceTree = "<group>"; };
 		D05CC7211C8D19050064DCB8 /* PushMaster.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PushMaster.m; sourceTree = "<group>"; };
 		D0B6A6881C0FB2EB007200E5 /* Flawk.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Flawk.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -194,6 +200,7 @@
 		D0262C0A1C8B8DDA00BE506C /* Cell */ = {
 			isa = PBXGroup;
 			children = (
+				D04031111C90C29D00CA9F85 /* Choose Location Page */,
 				D05CC7241C8D20150064DCB8 /* Main Page */,
 				D05CC7231C8D20050064DCB8 /* Add Friends Page */,
 			);
@@ -211,8 +218,19 @@
 				D02EBC661C1397BD00D037CB /* ShareLocationViewController.m */,
 				D0011A861C8A695B00D07465 /* AddFriendsViewController.h */,
 				D0011A871C8A695B00D07465 /* AddFriendsViewController.m */,
+				D040310E1C90C19700CA9F85 /* ChooseLocationController.h */,
+				D040310F1C90C19700CA9F85 /* ChooseLocationController.m */,
 			);
 			name = Controllers;
+			sourceTree = "<group>";
+		};
+		D04031111C90C29D00CA9F85 /* Choose Location Page */ = {
+			isa = PBXGroup;
+			children = (
+				D04031121C90C2B200CA9F85 /* LocationCell.h */,
+				D04031131C90C2B200CA9F85 /* LocationCell.m */,
+			);
+			name = "Choose Location Page";
 			sourceTree = "<group>";
 		};
 		D05CC71F1C8D18CE0064DCB8 /* Services */ = {
@@ -538,8 +556,10 @@
 				D0B6A68D1C0FB2EB007200E5 /* main.m in Sources */,
 				D0262C191C8CAA5A00BE506C /* MapCell.m in Sources */,
 				D02EBC671C1397BD00D037CB /* ShareLocationViewController.m in Sources */,
+				D04031101C90C19700CA9F85 /* ChooseLocationController.m in Sources */,
 				D038324D1C113C670001BA79 /* FriendLocationController.m in Sources */,
 				D0262C131C8B93F000BE506C /* UIImageView+Web.m in Sources */,
+				D04031141C90C2B200CA9F85 /* LocationCell.m in Sources */,
 				D0B6A6C31C0FC147007200E5 /* Friend.m in Sources */,
 				D0262C101C8B912D00BE506C /* AddFriendCell.m in Sources */,
 				D0B6A6C61C0FC292007200E5 /* API.m in Sources */,

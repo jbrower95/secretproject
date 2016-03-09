@@ -40,7 +40,7 @@
 
 
 + (CGFloat)preferredHeightInView:(UIView *)parent {
-    float ratio = 80.0 / 320.0f;
+    float ratio = 60.0 / 320.0f;
     return ratio * parent.frame.size.width;
 }
 

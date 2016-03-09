@@ -10,4 +10,5 @@
 
 @interface NSDate (Prettified)
 - (NSString *)prettifiedStringFromReferenceDate:(NSDate *)past;
+- (NSString *)prettifiedStringAbbreviationFromReferenceDate:(NSDate *)past;
 @end

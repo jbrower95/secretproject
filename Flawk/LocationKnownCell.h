@@ -10,9 +10,10 @@
 #import "Friend.h"
 @interface LocationKnownCell : UITableViewCell {
     
-    IBOutlet UILabel *name;
-    IBOutlet UILabel *location;
-    IBOutlet UILabel *area;
+    IBOutlet UILabel *name;     // Josiah Carberry
+    
+    IBOutlet UILabel *location; // Providence, RI.
+    IBOutlet UILabel *area;  // Jo's
     
     IBOutlet UIButton *whereAtButton;
     

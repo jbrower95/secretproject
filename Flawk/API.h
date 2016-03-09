@@ -41,6 +41,7 @@ FOUNDATION_EXPORT NSString *const API_RECEIVED_FRIEND_REQUEST_EVENT;
 @property (nonatomic, retain) NSMutableArray<Request *> *outstandingFriendRequests;
 @property (nonatomic, retain) NSMutableArray<Request *> *sentFriendRequests;
 @property (nonatomic, retain) NSMutableArray<NSNumber *> *friendHandles;
+@property (nonatomic, retain) NSMutableArray<NSDictionary *> *locationChoices;
 /* Gets all friends from Facebook. */
 - (void)getAllFriendsWithBlock:(void(^)(NSArray *friends, NSError *error))block;
 

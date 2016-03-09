@@ -26,6 +26,9 @@
     BBBadgeBarButtonItem *plusItem;
     
     CGFloat offset;
+    
+    UILabel *locationView;
+    UILabel *areaView;
 }
 
 @property (nonatomic, strong) CLLocationManager *manager;

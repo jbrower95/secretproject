@@ -34,11 +34,14 @@
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(locationRequest:) name:@"LocationRequest" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(locationAvailable:) name:@"LocationAvailable" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(locationAvailable:) name:@"NewLocationAvailable" object:nil];
+    
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(messageReceived:) name:@"MessageReceived" object:nil];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reload:) name:@"ReloadMainTable" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reload:) name:@"ReloadCheckins" object:nil];
     
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(locationChosen:) name:@"LocationChosen" object:nil];
     
     self.navigationItem.title = @"Flawk";
     
@@ -74,7 +77,65 @@
     plusItem.badgeBGColor = [UIColor colorWithRed:0.091 green:0.714 blue:0.811 alpha:1.000];
     [self.navigationItem setRightBarButtonItem:plusItem];
     
+    UIView *titleView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 200, 80)];
+    [titleView setBackgroundColor:[UIColor clearColor]];
+    
+    locationView = [[UILabel alloc] initWithFrame:CGRectMake(0, 20, 200, 20)];
+    areaView = [[UILabel alloc] initWithFrame:CGRectMake(0, 40, 200, 20)];
+    
+    locationView.adjustsFontSizeToFitWidth = YES;
+    areaView.adjustsFontSizeToFitWidth = YES;
+    
+    [locationView setTextAlignment:NSTextAlignmentCenter];
+    [areaView setTextAlignment:NSTextAlignmentCenter];
+    
+    [locationView setFont:[UIFont systemFontOfSize:22]];
+    [areaView setFont:[UIFont systemFontOfSize:14]];
+    
+    [locationView setTextColor:[UIColor whiteColor]];
+    [areaView setTextColor:[UIColor colorWithRed:1 green:1 blue:1 alpha:.7]];
+    
+    [titleView addSubview:locationView];
+    [titleView addSubview:areaView];
+    
+    [locationView setText:@"Flawk"];
+    [areaView setText:@"Locating..."];
+    
+    [titleView setUserInteractionEnabled:YES];
+    UIButton *chooseButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, titleView.frame.size.width, titleView.frame.size.height)];
+    [chooseButton setBackgroundColor:[UIColor clearColor]];
+    [chooseButton addTarget:self action:@selector(chooseLocation:) forControlEvents:UIControlEventTouchUpInside];
+    [titleView addSubview:chooseButton];
+    
+    self.navigationItem.titleView = titleView;
+    
     [super viewDidLoad];
+}
+
+- (void)locationChosen:(NSNotification *)notification {
+    
+    NSDictionary *venue = [notification userInfo];
+    
+    NSDictionary *location_dict = venue[@"location"];
+    
+    [[[API sharedAPI] this_user] setLastKnownArea:[NSString stringWithFormat:@"%@, %@", [location_dict objectForKey:@"city"], [location_dict objectForKey:@"state"]]];
+    [[[API sharedAPI] this_user] setLastKnownLocation:venue[@"name"]];
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [locationView setText:venue[@"name"]];
+        [areaView setText:[[API sharedAPI] this_user].lastKnownArea];
+    });
+}
+
+- (void)chooseLocation:(id)sender {
+    if ([[areaView text] isEqualToString:@"Locating..."]) {
+        //bail
+        return;
+    } else {
+        // choose location
+        [self performSegueWithIdentifier:@"ChooseLocationSegue" sender:nil];
+    }
+    
 }
 
 - (void)receivedFriendRequest:(NSNotification *)notification {
@@ -186,6 +247,11 @@
 
 - (IBAction)addFriends:(id)sender {
     
+    [self performSegueWithIdentifier:@"AddFriendsSegue" sender:self];
+    
+    
+    /*
+    // Example of a feature flag.
     [FeatureConfig featureEnabled:kFeatureAddFriends callback:^(BOOL enabled) {
         if (enabled) {
             [self performSegueWithIdentifier:@"AddFriendsSegue" sender:self];
@@ -200,13 +266,15 @@
             });
         }
     }];
-    
+     */
 }
 
 - (void)locationAvailable:(NSNotification *)notification {
     NSLog(@"Location available! Enabling checkin.");
     [button setEnabled:YES];
-    [UIView animateWithDuration:2.0 animations:^{
+    [[API sharedAPI] getLocationAndAreaWithBlock:^{
+        locationView.text = [[API sharedAPI] this_user].lastKnownLocation;
+        areaView.text = [[API sharedAPI] this_user].lastKnownArea;
     }];
 }
 
@@ -351,8 +419,11 @@
     Friend *f = [[[API sharedAPI] confirmedFriends] objectAtIndex:indexPath.row-1];
     
     if ([f locationKnown]) {
-        [self performSegueWithIdentifier:segue sender:self];
+        // zoom over this person
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"ZoomFriend" object:nil userInfo:@{@"id" : f.fbid}];
     }
+    
+    [table deselectRowAtIndexPath:indexPath animated:YES];
 }
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
