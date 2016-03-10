@@ -29,8 +29,11 @@
                 Request *r = [[API sharedAPI] outstandingFriendRequests][indexPath.row];
                 cell = [tableView dequeueReusableCellWithIdentifier:@"FriendRequestPendingCell"];
                 Friend *fromFriend = nil;
+                
+                NSString *fid = [[r from] substringFromIndex:[@"facebook:" length]];
+                
                 for (Friend *friend in [[API sharedAPI] friends]) {
-                    if ([[friend fbid] isEqualToString:[r from]]) {
+                    if ([[friend fbid] isEqualToString:fid]) {
                         fromFriend = friend;
                         break;
                     }
@@ -56,7 +59,9 @@
                 [(AddFriendCell *)cell setStatus:@""];
                 
                 for (Request *request in [[API sharedAPI] sentFriendRequests]) {
-                    if ([[request to] isEqualToString:[friend fbid]]) {
+                    NSString *fid = [[request to] substringFromIndex:[@"facebook:" length]];
+                    
+                    if ([fid isEqualToString:[friend fbid]]) {
                         if ([request accepted]) {
                             [(AddFriendCell *)cell setStatus:@"request accepted!"];
                         } else {
@@ -83,7 +88,8 @@
         [(AddFriendCell *)cell setStatus:@""];
         
         for (Request *request in [[API sharedAPI] sentFriendRequests]) {
-            if ([[request to] isEqualToString:[friend fbid]]) {
+            NSString *f = [[request to] substringFromIndex:[@"facebook:" length]];
+            if ([f isEqualToString:[friend fbid]]) {
                 if ([request accepted]) {
                     [(AddFriendCell *)cell setStatus:@"request accepted!"];
                 } else {
@@ -166,7 +172,7 @@
     
     Firebase *requests = [[[API sharedAPI] firebase] childByAppendingPath:@"requests"];
     FQuery *query = [requests queryOrderedByChild:@"from"];
-    query = [query queryEqualToValue:[API sharedAPI].this_user.fbid];
+    query = [query queryEqualToValue:[NSString stringWithFormat:@"facebook:%@", [API sharedAPI].this_user.fbid]];
     [self resyncFriends];
     handle = [query observeEventType:FEventTypeValue withBlock:^(FDataSnapshot *snapshot) {
         
@@ -176,7 +182,6 @@
         FDataSnapshot *child;
         
         for (child in [snapshot children]) {
-            NSString *requestid = child.key;
             Request *r = [[Request alloc] initWithSnapshot:child];
             if ([[[API sharedAPI] sentFriendRequests] containsObject:r]) {
                 [[[API sharedAPI] sentFriendRequests] removeObject:r];

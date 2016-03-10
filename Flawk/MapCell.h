@@ -14,6 +14,7 @@
     BOOL firstUpdate;
     int selected;
     UILabel *selectedLabel;
+    NSMutableArray *imageViews;
     
 }
 @property (nonatomic, retain) IBOutlet MKMapView *mapView;

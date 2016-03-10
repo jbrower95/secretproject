@@ -29,6 +29,7 @@
     
     UILabel *locationView;
     UILabel *areaView;
+    BOOL locationAvailable;
 }
 
 @property (nonatomic, strong) CLLocationManager *manager;

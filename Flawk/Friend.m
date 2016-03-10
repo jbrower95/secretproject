@@ -61,7 +61,7 @@
         completion(profilePictureUrl);
     }
     
-    FBSDKGraphRequest *request = [[FBSDKGraphRequest alloc] initWithGraphPath:[NSString stringWithFormat:@"%@/picture", _fbId] parameters:@{@"redirect" : @"false", @"type" : @"small", @"fields" : @"url"}];
+    FBSDKGraphRequest *request = [[FBSDKGraphRequest alloc] initWithGraphPath:[NSString stringWithFormat:@"%@/picture", _fbId] parameters:@{@"redirect" : @"false", @"type" : @"large", @"fields" : @"url"}];
     
     [request startWithCompletionHandler:^(FBSDKGraphRequestConnection *connection, id result, NSError *error) {
         if (!error) {

@@ -17,7 +17,18 @@
     
     NSDictionary *location = venue[@"location"];
     
-    NSString *location_str = [NSString stringWithFormat:@"%@, %@", location[@"city"], location[@"state"]];
+    NSString *location_str;
+    
+    if (location[@"city"] != nil && location[@"state"] != nil) {
+        location_str = [NSString stringWithFormat:@"%@, %@", location[@"city"], location[@"state"]];
+    } else if (location[@"state"] != nil) {
+        location_str = location[@"state"];
+    } else if (location[@"country"] != nil) {
+        location_str = location[@"country"];
+    } else {
+        location_str = @"Somewhere";
+    }
+    
     NSString *name_str = venue[@"name"];
     
     [self.locationLabel setText:location_str];

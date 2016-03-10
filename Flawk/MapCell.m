@@ -77,7 +77,7 @@
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reloadSidebarNotification:) name:@"ReloadMainTable" object:nil];
     int selected_label_height = 40;
-    
+    imageViews = [[NSMutableArray alloc] init];
     [self refreshSidebar];
     setup = YES;
 }
@@ -91,8 +91,10 @@
     int padding = 12;
     int x_padding = 14;
     int CELL_HEIGHT = 70;
-    [[self.sidebar subviews]
+    [imageViews
      makeObjectsPerformSelector:@selector(removeFromSuperview)];
+    [imageViews removeAllObjects];
+    
     int i = 0;
     for (Friend *f in [[API sharedAPI] confirmedFriends]) {
     
@@ -100,7 +102,7 @@
         image.layer.masksToBounds = YES;
         image.layer.cornerRadius = 5;
         [self.sidebar addSubview:image];
-        
+        [imageViews addObject:image];
         [f loadFacebookProfilePictureUrlWithBlock:^(NSString *url) {
             [image loadRemoteUrl:url];
         }];
@@ -120,14 +122,7 @@
         UITapGestureRecognizer *doubleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(imageTapped:)];
         [doubleTap setNumberOfTapsRequired:2];
         [image addGestureRecognizer:doubleTap];
-        
-        if (selected == i) {
-            image.layer.borderColor = [UIColor whiteColor].CGColor;
-            image.layer.borderWidth = 1;
-        } else {
-            image.layer.borderColor = [UIColor clearColor].CGColor;
-            image.layer.borderWidth = 0;
-        }
+        [image.layer setValue:[NSNumber numberWithInt:i] forKey:@"imageId"];
         
         // Add double tap recognizer
         UILongPressGestureRecognizer *r = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(imageLongPressed:)];
@@ -139,6 +134,20 @@
     
 }
 
+- (void)refreshSidebarSelections {
+    int i = 0;
+    
+    for (UIImageView *imageView in imageViews) {
+        if (selected == i) {
+            [imageView setAlpha:.4];
+        } else {
+            [imageView setAlpha:1];
+        }
+        i++;
+    }
+    
+}
+
 - (void)imageTapped:(id)sender {
     UIImageView *view = (UIImageView *)[(UITapGestureRecognizer *)sender view];
     NSString *fbid = [NSString stringWithFormat:@"%ld",(long)[view tag]];
@@ -146,21 +155,48 @@
     Friend *friend = [Friend friendWithFacebookId:fbid];
     
     if (![friend locationKnown]) {
-        CAKeyframeAnimation *animation = [CAKeyframeAnimation animation];
-        animation.keyPath = @"position.y";
-        animation.values = @[ @0, @8, @-8, @4, @0 ];
-        animation.keyTimes = @[ @0, @(1 / 6.0), @(3 / 6.0), @(5 / 6.0), @1 ];
-        animation.duration = 0.4;
-        animation.additive = YES;
-        [view.layer addAnimation:animation forKey:@"wiggle"];
-
+        
+        if ([[NSUserDefaults standardUserDefaults] objectForKey:@"FirstTapTutorial"] == nil) {
+            
+            UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Hmmm" message:[NSString stringWithFormat:@"Press and hold to request %@'s location!", [friend nickname]] preferredStyle:UIAlertControllerStyleAlert];
+            [alert addAction:[UIAlertAction actionWithTitle:@"Cool, I guess." style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                [[[self window] rootViewController] dismissViewControllerAnimated:YES completion:nil];
+                [self wiggleView:view];
+            }]];
+            
+            [[[self window] rootViewController] presentViewController:alert animated:YES completion:nil];
+            
+            
+            [[NSUserDefaults standardUserDefaults] setObject:@"Okay" forKey:@"FirstTap"];
+            [[NSUserDefaults standardUserDefaults] synchronize];
+        } else {
+            [self wiggleView:view];
+        }
+        
         return;
     }
     
-    view.layer.borderColor = [UIColor whiteColor].CGColor;
-    view.layer.borderWidth = 1;
+    int newSelected = [[view.layer valueForKey:@"imageId"] intValue];
+    if (newSelected == selected) {
+        selected = -1;
+        [self zoomToFitAnnotationsAndUser];
+    } else {
+        selected = newSelected;
+        [self zoomFriend:friend];
+    }
     
-    [self zoomFriend:friend];
+    [self refreshSidebarSelections];
+    
+}
+
+- (void)wiggleView:(UIView *)view {
+    CAKeyframeAnimation *animation = [CAKeyframeAnimation animation];
+    animation.keyPath = @"position.y";
+    animation.values = @[ @0, @8, @-8, @4, @0 ];
+    animation.keyTimes = @[ @0, @(1 / 6.0), @(3 / 6.0), @(5 / 6.0), @1 ];
+    animation.duration = 0.4;
+    animation.additive = YES;
+    [view.layer addAnimation:animation forKey:@"wiggle"];
 }
 
 - (void)imageLongPressed:(id)sender {
@@ -199,7 +235,7 @@
         // zoom in on this friend
         PersistentCheckin *location = [friend lastCheckin];
         CLRegion *region = location.region;
-        CGFloat delta = 0.2;
+        CGFloat delta = 1200;
         MKMapPoint origin = MKMapPointForCoordinate(region.center);
         MKMapRect rect = MKMapRectMake(origin.x - delta, origin.y - delta, delta * 2, delta * 2);
         [self.mapView setVisibleMapRect:rect animated:YES];
@@ -281,6 +317,13 @@
 }
 
 - (void)mapView:(MKMapView *)mapView didUpdateUserLocation:(MKUserLocation *)userLocation {
+    
+    if (selected >= 0) {
+        return;
+    }
+    
+    return;
+    
     MKCoordinateRegion mapRegion;
     mapRegion.center = self.mapView.userLocation.coordinate;
     

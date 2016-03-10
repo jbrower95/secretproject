@@ -66,7 +66,7 @@ NSString *const FIREBASE_URI = @"https://flawkdb.firebaseio.com";
 }
 
 - (void)setupListeners {
-    FQuery *query = [[[self.firebase childByAppendingPath:@"requests"] queryOrderedByChild:@"to"] queryEqualToValue:[self this_user].fbid];
+    FQuery *query = [[[self.firebase childByAppendingPath:@"requests"] queryOrderedByChild:@"to"] queryEqualToValue:[NSString stringWithFormat:@"facebook:%@",[self this_user].fbid]];
     NSLog(@"Listening for requests for fbid: %@", [self this_user].fbid);
     // Listen for incoming friend requests
     [query observeEventType:FEventTypeValue withBlock:^(FDataSnapshot *snapshot) {
@@ -282,7 +282,43 @@ NSString *const FIREBASE_URI = @"https://flawkdb.firebaseio.com";
 }
 
 
+- (void)loginWithFacebookToFirebase {
+    [self.firebase authWithOAuthProvider:@"facebook" token:[FBSDKAccessToken currentAccessToken].tokenString
+                     withCompletionBlock:^(NSError *error, FAuthData *authData) {
+                         
+                         if (error) {
+                             NSLog(@"[API] Login failed. %@", error);
+                             return;
+                         }
+                         
+                         // Login!
+                         [[[[self.firebase childByAppendingPath:@"users"] childByAppendingPath:authData.uid] childByAppendingPath:@"active"] setValue:@"true"];
+                         
+                         AppDelegate *delegate = [[UIApplication sharedApplication] delegate];
+                         
+                         // Update our device token if we don't have this
+                         if ([delegate deviceToken] != nil) {
+                             [[[[self.firebase childByAppendingPath:@"users"] childByAppendingPath:authData.uid] childByAppendingPath:@"push_token"] setValue:delegate.deviceToken];
+                         }
+                         
+                         NSLog(@"[API] Logged in! %@", authData);
+                         [self loadExtendedUserInfoFromFacebook];
+                     }];
+}
+
 - (void)login {
+    
+    /* See if our sdk access token is still valid */
+    FBSDKAccessToken *token = [FBSDKAccessToken currentAccessToken];
+    if (token != nil) {
+        if (token.expirationDate.timeIntervalSince1970 < [[NSDate date] timeIntervalSince1970]) {
+            [self loginWithFacebookToFirebase];
+        } else {
+            // Token expired
+            NSLog(@"Facebook: Token expired.");
+        }
+    }
+    
     FBSDKLoginManager *facebookLogin = [[FBSDKLoginManager alloc] init];
     [facebookLogin logInWithReadPermissions:@[@"email", @"user_friends"]
                                     handler:^(FBSDKLoginManagerLoginResult *facebookResult, NSError *facebookError) {
@@ -291,29 +327,7 @@ NSString *const FIREBASE_URI = @"https://flawkdb.firebaseio.com";
                                         } else if (facebookResult.isCancelled) {
                                             NSLog(@"[API] Facebook login got cancelled.");
                                         } else {
-                                            NSString *accessToken = [[FBSDKAccessToken currentAccessToken] tokenString];
-                                            
-                                            [self.firebase authWithOAuthProvider:@"facebook" token:accessToken
-                                                   withCompletionBlock:^(NSError *error, FAuthData *authData) {
-                                                       
-                                                       if (error) {
-                                                           NSLog(@"[API] Login failed. %@", error);
-                                                           return;
-                                                       }
-                                                       
-                                                       // Login!
-                                                       [[[[self.firebase childByAppendingPath:@"users"] childByAppendingPath:authData.uid] childByAppendingPath:@"active"] setValue:@"true"];
-                                                       
-                                                       AppDelegate *delegate = [[UIApplication sharedApplication] delegate];
-                                                       
-                                                       // Update our device token if we don't have this
-                                                       if ([delegate deviceToken] != nil) {
-                                                           [[[[self.firebase childByAppendingPath:@"users"] childByAppendingPath:authData.uid] childByAppendingPath:@"push_token"] setValue:delegate.deviceToken];
-                                                       }
-                                                       
-                                                       NSLog(@"[API] Logged in! %@", authData);
-                                                       [self loadExtendedUserInfoFromFacebook];
-                                                   }];
+                                            [self loginWithFacebookToFirebase];
                                         }
                                     }];
     
@@ -409,11 +423,17 @@ NSString *const FIREBASE_URI = @"https://flawkdb.firebaseio.com";
                 }
                 
                 // Remove the best venue
-                [venues removeObject:bestVenue];
                 [self.locationChoices removeAllObjects];
                 
                 // Add all the other venues
                 [self.locationChoices addObjectsFromArray:venues];
+                
+                [self.locationChoices sortUsingComparator:^NSComparisonResult(id  _Nonnull obj1, id  _Nonnull obj2) {
+                    NSDictionary *venueOne = (NSDictionary *)obj1;
+                    NSDictionary *venueTwo = (NSDictionary *)obj2;
+                    
+                    return [venueTwo[@"stats"][@"checkinsCount"] compare:venueOne[@"stats"][@"checkinsCount"]];
+                }];
                 
                 NSString *description;
                 NSString *location;
@@ -424,7 +444,12 @@ NSString *const FIREBASE_URI = @"https://flawkdb.firebaseio.com";
                 } else {
                     location = [bestVenue objectForKey:@"name"];
                     NSDictionary *location_dict = [bestVenue objectForKey:@"location"];
-                    description = [NSString stringWithFormat:@"%@, %@", [location_dict objectForKey:@"city"], [location_dict objectForKey:@"state"]];
+                    
+                    if ([location_dict objectForKey:@"city"] != nil) {
+                        description = [NSString stringWithFormat:@"%@, %@", [location_dict objectForKey:@"city"], [location_dict objectForKey:@"state"]];
+                    } else {
+                        description = [NSString stringWithFormat:@"%@", [location_dict objectForKey:@"state"]];
+                    }
                 }
                 
                 NSLog(@"[API] Setting area, location %@ %@", description, location);

@@ -44,7 +44,7 @@
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(locationChosen:) name:@"LocationChosen" object:nil];
     
     self.navigationItem.title = @"Flawk";
-    
+    locationAvailable = NO;
     refreshControl = [UIRefreshControl new];
     [refreshControl addTarget:self action:@selector(reloadTable:) forControlEvents:UIControlEventValueChanged];
     [tableView addSubview:refreshControl];
@@ -83,13 +83,18 @@
     locationView = [[UILabel alloc] initWithFrame:CGRectMake(0, 20, 200, 20)];
     areaView = [[UILabel alloc] initWithFrame:CGRectMake(0, 40, 200, 20)];
     
+    [locationView setBackgroundColor:[UIColor clearColor]];
+    [areaView setBackgroundColor:[UIColor clearColor]];
+    
+    locationView.clipsToBounds = NO;
+    
     locationView.adjustsFontSizeToFitWidth = YES;
     areaView.adjustsFontSizeToFitWidth = YES;
     
     [locationView setTextAlignment:NSTextAlignmentCenter];
     [areaView setTextAlignment:NSTextAlignmentCenter];
     
-    [locationView setFont:[UIFont systemFontOfSize:22]];
+    [locationView setFont:[UIFont systemFontOfSize:20]];
     [areaView setFont:[UIFont systemFontOfSize:14]];
     
     [locationView setTextColor:[UIColor whiteColor]];
@@ -204,9 +209,17 @@
         NSString *requestId = [userInfo objectForKey:@"id"];
         Friend *friend = [Friend friendWithFacebookId:senderId];
         
-        if (friend == nil) {
-            // Received request from unknown friend. Delete.
+        if (!locationAvailable) {
+            UIAlertController *controller = [UIAlertController alertControllerWithTitle:[NSString stringWithFormat:@"%@ wants to know where you're at! Enable locations to tell them.", [friend nickname]] message:nil preferredStyle:UIAlertControllerStyleAlert];
+            [controller addAction:[UIAlertAction actionWithTitle:@"Okay" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                [[API sharedAPI] initLocations];
+                [self dismissViewControllerAnimated:YES completion:nil];
+            }]];
+            [self presentViewController:controller animated:YES completion:nil];
+            return;
         }
+        
+        
         
         // Found friend. Show a prompt.
         UIAlertController *controller = [UIAlertController alertControllerWithTitle:[NSString stringWithFormat:@"%@ wants to know where you're at!", [friend nickname]] message:nil preferredStyle:UIAlertControllerStyleAlert];
@@ -234,15 +247,20 @@
         
         [self presentViewController:controller animated:YES completion:^{
             // Delete the location request
-            [[[[[[[API sharedAPI] firebase] childByAppendingPath:@"users"] childByAppendingPath:[[API sharedAPI] firebase].authData.uid] childByAppendingPath:@"location_requests"] childByAppendingPath:requestId] removeValueWithCompletionBlock:^(NSError *error, Firebase *ref) {
-                if (error == nil) {
-                    NSLog(@"[API] Successfully dequeued friend request.");
-                } else {
-                    NSLog(@"[API] Couldn't dequeue location request.");
-                }
-            }];
+            [self removeLocationRequestWithId:requestId];
         }];
     }
+}
+
+- (void)removeLocationRequestWithId:(NSString *)requestId {
+    [[[[[[[API sharedAPI] firebase] childByAppendingPath:@"users"] childByAppendingPath:[[API sharedAPI] firebase].authData.uid] childByAppendingPath:@"location_requests"] childByAppendingPath:requestId] removeValueWithCompletionBlock:^(NSError *error, Firebase *ref) {
+        if (error == nil) {
+            NSLog(@"[API] Successfully dequeued friend request.");
+        } else {
+            NSLog(@"[API] Couldn't dequeue location request.");
+        }
+    }];
+
 }
 
 - (IBAction)addFriends:(id)sender {
@@ -271,7 +289,7 @@
 
 - (void)locationAvailable:(NSNotification *)notification {
     NSLog(@"Location available! Enabling checkin.");
-    [button setEnabled:YES];
+    locationAvailable = YES;
     [[API sharedAPI] getLocationAndAreaWithBlock:^{
         locationView.text = [[API sharedAPI] this_user].lastKnownLocation;
         areaView.text = [[API sharedAPI] this_user].lastKnownArea;

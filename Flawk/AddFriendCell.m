@@ -30,15 +30,18 @@
     
     Friend *target = fr;
     
-    NSString *reqId = [NSString stringWithFormat:@"%@%@",[[API sharedAPI] this_user].fbid , [target fbid]];
+    NSString *targetId = [NSString stringWithFormat:@"facebook:%@", [target fbid]];
+    NSString *fromId = [NSString stringWithFormat:@"facebook:%@", [[API sharedAPI] this_user].fbid];
+    
+    NSString *reqId = [NSString stringWithFormat:@"%@%@",fromId,targetId];
     
     int timestamp = [[NSDate date] timeIntervalSince1970];
     
     Firebase *request = [[[[API sharedAPI] firebase] childByAppendingPath:@"requests"] childByAppendingPath:reqId];
     
     NSDictionary *values = @{
-                             @"from" : [[API sharedAPI] this_user].fbid,
-                             @"to" : [target fbid],
+                             @"from" : fromId,
+                             @"to" : targetId,
                              @"timestamp" : [NSNumber numberWithInt:timestamp],
                              @"accepted" : [NSNumber numberWithBool:NO]
                              };
