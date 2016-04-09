@@ -16,6 +16,8 @@
 #import "FeatureConfig.h"
 #import "LocationNotKnownCell.h"
 #import "MapCell.h"
+#import "JoinMeCell.h"
+#import "AudioHelper.h"
 
 @interface ViewController ()
 
@@ -36,6 +38,8 @@
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(locationAvailable:) name:@"LocationAvailable" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(locationAvailable:) name:@"NewLocationAvailable" object:nil];
     
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(showCheckin:) name:@"ShowCheckin" object:nil];
+    
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(messageReceived:) name:@"MessageReceived" object:nil];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reload:) name:@"ReloadMainTable" object:nil];
@@ -55,6 +59,7 @@
     [[API sharedAPI] initLocations];
     
     friends = [[NSMutableArray alloc] init];
+    selectedFbids = [[NSMutableSet alloc] init];
     
     /* Check if we're logged in */
     if (![[API sharedAPI] isLoggedIn]) {
@@ -104,8 +109,9 @@
     [titleView addSubview:areaView];
     
     [locationView setText:@"Flawk"];
-    [areaView setText:@"Locating..."];
+    [areaView setText:@"locating..."];
     
+    [tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
     [titleView setUserInteractionEnabled:YES];
     UIButton *chooseButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, titleView.frame.size.width, titleView.frame.size.height)];
     [chooseButton setBackgroundColor:[UIColor clearColor]];
@@ -114,7 +120,80 @@
     
     self.navigationItem.titleView = titleView;
     
+    [checkinButton setAlpha:0];
+    
+    UIGestureRecognizer *recognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(checkinTapped:)];
+    [checkinButton addGestureRecognizer:recognizer];
+    
     [super viewDidLoad];
+}
+
+
+- (void)checkinTapped:(UIGestureRecognizer *)sender {
+    
+    // see if we have anyone selected.
+    if (selectedFbids.count > 0) {
+        
+        // create a checkin
+        [[API sharedAPI] shareLocationWithUsers:selectedFbids completion:^(BOOL success, NSError *error) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                if (error) {
+                        UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Error" message:[error localizedFailureReason] preferredStyle:UIAlertControllerStyleAlert];
+                        [alert addAction:[UIAlertAction actionWithTitle:@"Okay" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                            [self dismissViewControllerAnimated:YES completion:nil];
+                        }]];
+                        [self presentViewController:alert animated:YES completion:nil];
+                    
+                } else {
+                    [AudioHelper vibratePhone];
+                }
+                
+                // clear out selection
+                [selectedFbids removeAllObjects];
+                
+                // scroll up
+                [tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0] atScrollPosition:UITableViewScrollPositionTop animated:YES];
+                
+                // reload
+                [tableView reloadData];
+            });
+        } emoji:emoji];
+    } else {
+        UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Flawk" message:@"Select some friends before sending!" preferredStyle:UIAlertControllerStyleAlert];
+        [alert addAction:[UIAlertAction actionWithTitle:@"Okay" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+            [self dismissViewControllerAnimated:YES completion:nil];
+        }]];
+        [self presentViewController:alert animated:YES completion:nil];
+    }
+}
+
+
+
+- (void)showCheckin:(NSNotification *)notif {
+   // scroll down or something
+    [tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:1 inSection:0] atScrollPosition:UITableViewScrollPositionTop animated:YES];
+    [tableView setScrollEnabled:true];
+    emoji = [notif userInfo][@"emoji"];
+    
+}
+
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+    // determine the correct alpha value for cool friends menu
+    float location = scrollView.contentOffset.y;
+    float alpha = (1 - (location / 200));
+    [mapCell setFriendbarAlpha:alpha];
+    
+    // only start showing the checkin button after you've moved 70 pixels.
+    float alphaTwo = (location - 70) / 200;
+    alphaTwo = alphaTwo < 0 ? 0 : (alphaTwo > 1 ? 1 : alphaTwo);
+    
+    [checkinButton setAlpha:alphaTwo];
+    [tableView setContentInset:UIEdgeInsetsMake(0, 0, (alphaTwo > 0 ? 69 : 0), 0)];
+}
+
+- (void)hideCheckin:(id)sender {
+    [tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0] atScrollPosition:UITableViewScrollPositionTop animated:YES];
+    [tableView setScrollEnabled:NO];
 }
 
 - (void)locationChosen:(NSNotification *)notification {
@@ -123,7 +202,16 @@
     
     NSDictionary *location_dict = venue[@"location"];
     
-    [[[API sharedAPI] this_user] setLastKnownArea:[NSString stringWithFormat:@"%@, %@", [location_dict objectForKey:@"city"], [location_dict objectForKey:@"state"]]];
+    if ([location_dict objectForKey:@"city"] && [location_dict objectForKey:@"state"]) {
+        [[[API sharedAPI] this_user] setLastKnownArea:[NSString stringWithFormat:@"%@, %@", [location_dict objectForKey:@"city"], [location_dict objectForKey:@"state"]]];
+    } else if ([location_dict objectForKey:@"state"]) {
+        [[[API sharedAPI] this_user] setLastKnownArea:[location_dict objectForKey:@"state"]];
+    } else if ([location_dict objectForKey:@"country"]) {
+        [[[API sharedAPI] this_user] setLastKnownArea:[location_dict objectForKey:@"country"]];
+    } else {
+        [[[API sharedAPI] this_user] setLastKnownArea:@"The Earth"];\
+    }
+    
     [[[API sharedAPI] this_user] setLastKnownLocation:venue[@"name"]];
     
     dispatch_async(dispatch_get_main_queue(), ^{
@@ -194,7 +282,7 @@
 }
 
 - (void)login {
-    [[API sharedAPI] login];
+    [[API sharedAPI] loginFromViewController:self];
 }
 
 
@@ -228,14 +316,12 @@
             // share location
             
             dispatch_async(dispatch_get_main_queue(), ^{
-                [[API sharedAPI] getLocationAndAreaWithBlock:^{
-                    [[API sharedAPI] shareLocationWithUser:friend completion:^(BOOL success, NSError *error) {
-                        if (success) {
-                            NSLog(@"Location shared!");
-                        } else {
-                            NSLog(@"Location failed to share: %@", error);
-                        }
-                    }];
+                [[API sharedAPI] shareLocationWithUser:friend completion:^(BOOL success, NSError *error) {
+                    if (success) {
+                        NSLog(@"Location shared!");
+                    } else {
+                        NSLog(@"Location failed to share: %@", error);
+                    }
                 }];
             });
             
@@ -264,35 +350,20 @@
 }
 
 - (IBAction)addFriends:(id)sender {
-    
     [self performSegueWithIdentifier:@"AddFriendsSegue" sender:self];
-    
-    
-    /*
-    // Example of a feature flag.
-    [FeatureConfig featureEnabled:kFeatureAddFriends callback:^(BOOL enabled) {
-        if (enabled) {
-            [self performSegueWithIdentifier:@"AddFriendsSegue" sender:self];
-        } else {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                NSLog(@"Add friends not enabled!");
-                UIAlertController *c = [UIAlertController alertControllerWithTitle:@"Error" message:@"Feature unavailable." preferredStyle:UIAlertControllerStyleAlert];
-                [c addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
-                    [self dismissViewControllerAnimated:YES completion:nil];
-                }]];
-                [self presentViewController:c animated:YES completion:nil];
-            });
-        }
-    }];
-     */
 }
 
 - (void)locationAvailable:(NSNotification *)notification {
     NSLog(@"Location available! Enabling checkin.");
     locationAvailable = YES;
-    [[API sharedAPI] getLocationAndAreaWithBlock:^{
-        locationView.text = [[API sharedAPI] this_user].lastKnownLocation;
-        areaView.text = [[API sharedAPI] this_user].lastKnownArea;
+    [[API sharedAPI] getLocationAndAreaWithBlock:^ (BOOL success){
+        if (success) {
+            locationView.text = [[API sharedAPI] this_user].lastKnownLocation;
+            areaView.text = [[API sharedAPI] this_user].lastKnownArea;
+        } else {
+            locationView.text = @"Flawk";
+            areaView.text = @"locating...";
+        }
     }];
 }
 
@@ -366,59 +437,25 @@
 - (UITableViewCell *)tableView:(UITableView *)_tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     
     if (indexPath.row == 0) {
-        // The map cell
-        MapCell *cell = [tableView dequeueReusableCellWithIdentifier:@"MapCell"];
-        if (cell == nil) {
-            cell = [[MapCell alloc] init];
+        if (mapCell == nil) {
+            // The map cell
+            mapCell = [tableView dequeueReusableCellWithIdentifier:@"MapCell"];
         }
-        [cell setup];
-        return cell;
+        
+        [mapCell setup];
+        return mapCell;
     }
-    
-    BOOL patterned = !(BOOL)(indexPath.row % 2);
     
     /* Apply friend to cell */
-    Friend *friend = [[[API sharedAPI] confirmedFriends] objectAtIndex:indexPath.row - 1];
+    Friend *f = [[[API sharedAPI] confirmedFriends] objectAtIndex:indexPath.row - 1];
+    JoinMeCell *cell = [tableView dequeueReusableCellWithIdentifier:@"JoinMeCell"];
+    BOOL selected = [selectedFbids containsObject:f.fbid];
+    NSLog(@"Cell selected (%d) ? : %d", (int)indexPath.row-1, selected);
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [cell applyFriend:f selected:selected];
+    });
     
-    if ([friend locationKnown]) {
-        LocationKnownCell *cell = (LocationKnownCell *)[_tableView dequeueReusableCellWithIdentifier:@"LocationKnownCell"];
-
-        if (cell == nil) {
-            cell = [[LocationKnownCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"LocationKnownCell"];
-        }
-
-        if (friend != nil) {
-            // apply them
-            [cell applyFriend:friend];
-        }
-        
-        if (patterned) {
-            [cell setBackgroundColor:[UIColor colorWithPatternImage:[UIImage imageNamed:@"Mask"]]];
-        } else {
-            [cell setBackgroundColor:[UIColor whiteColor]];
-        }
-        
-        return cell;
-    } else {
-        LocationNotKnownCell *cell = (LocationNotKnownCell *)[_tableView dequeueReusableCellWithIdentifier:@"LocationNotKnownCell"];
-        
-        if (cell == nil) {
-            cell = [[LocationNotKnownCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"LocationNotKnownCell"];
-        }
-        
-        if (friend != nil) {
-            // apply them
-            [cell applyFriend:friend];
-        }
-        
-        if (patterned) {
-            [cell setBackgroundColor:[UIColor colorWithPatternImage:[UIImage imageNamed:@"Mask"]]];
-        } else {
-            [cell setBackgroundColor:[UIColor whiteColor]];
-        }
-        
-        return cell;
-    }
+    return cell;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
@@ -432,17 +469,40 @@
         return;
     }
     
-    NSString *segue = @"FriendLocationSegue";
-    
     Friend *f = [[[API sharedAPI] confirmedFriends] objectAtIndex:indexPath.row-1];
     
-    if ([f locationKnown]) {
-        // zoom over this person
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"ZoomFriend" object:nil userInfo:@{@"id" : f.fbid}];
+    JoinMeCell *cell = (JoinMeCell *)[table cellForRowAtIndexPath:indexPath];
+    
+    [cell setSelected:![selectedFbids containsObject:f.fbid]];
+    
+    if ([selectedFbids count] == 0) {
+        // this is the first one
+        [self setCheckinButtonVisible:YES];
     }
+    
+    if ([selectedFbids containsObject:f.fbid]) {
+        [selectedFbids removeObject:f.fbid];
+    } else {
+        [selectedFbids addObject:f.fbid];
+    }
+    
+    if ([selectedFbids count] == 0) {
+        // this emptied out the list.
+        [self setCheckinButtonVisible:NO];
+    }
+    
+    NSLog(@"Total number of fbids selected: %d", [selectedFbids count]);
     
     [table deselectRowAtIndexPath:indexPath animated:YES];
 }
+
+- (void)setCheckinButtonVisible:(BOOL)visible {
+    
+    
+    
+    
+}
+
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     if ([segue.identifier isEqualToString:@"FriendLocationSegue"]) {

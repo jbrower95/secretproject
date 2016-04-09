@@ -19,6 +19,9 @@
 
 @synthesize mapView, sidebar;
 
+
+const int ORIGINAL_LOCATION = 60;
+
 + (CGFloat)preferredHeightInView:(UIView *)parent {
     // Maintain a certain aspect ratio
     float ratio = 320.0f / 320.0f;
@@ -40,6 +43,11 @@
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reloadCheckins:) name:@"ReloadCheckins" object:nil];
     
     return self;
+}
+
+- (void)setFriendbarAlpha:(float)alpha {
+    [self.sidebar setAlpha:alpha];
+    [self.sidebar setUserInteractionEnabled:alpha>0];
 }
 
 - (void)reloadCheckins:(NSNotification *)notif {
@@ -66,21 +74,60 @@
     selected = -1;
 }
 
+
+- (void)showCheckin:(id)sender {
+    [UIView animateWithDuration:.2 animations:^{
+        // show the emojis:
+        [emojis setAlpha:1];
+    }];
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"ShowCheckin" object:nil userInfo:@{@"emoji" : emoji}];
+}
+
 - (void)setup {
     if (setup) {
         return;
     }
     
     [self.mapView setDelegate:self];
+    
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reloadCheckins:) name:@"ReloadCheckins" object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(zoomFriend:) name:@"ZoomFriend" object:nil];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reloadSidebarNotification:) name:@"ReloadMainTable" object:nil];
-    int selected_label_height = 40;
+    
     imageViews = [[NSMutableArray alloc] init];
+    selectedIndices = [[NSMutableArray alloc] init];
     [self refreshSidebar];
     setup = YES;
+    
+    
+    NSArray *buttons = @[buttonOne, buttonTwo, buttonThree, buttonFour, buttonFive];
+    
+    UIGestureRecognizer *gestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(selectedEmoji:)];
+    
+    for (UILabel *button in buttons) {
+        [button addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(selectedEmoji:)]];
+    }
 }
+
+
+- (void)selectedEmoji:(UIGestureRecognizer *)sender {
+    
+    NSArray *buttons = @[buttonOne, buttonTwo, buttonThree, buttonFour, buttonFive];
+    
+    
+    UILabel *label = (UILabel *)[sender view];
+    
+    // get the label emoji
+    emoji = [label text];
+    
+    // post the update and select this one
+    for (UILabel *button in buttons) {
+        [button setAlpha:.5];
+    }
+    [label setAlpha:1.0f];
+    [self showCheckin:nil];
+}
+
 
 - (void)reloadSidebarNotification:(id)sender {
     [self refreshSidebar];
@@ -120,7 +167,7 @@
         [image setUserInteractionEnabled:YES];
         
         UITapGestureRecognizer *doubleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(imageTapped:)];
-        [doubleTap setNumberOfTapsRequired:2];
+        [doubleTap setNumberOfTapsRequired:1];
         [image addGestureRecognizer:doubleTap];
         [image.layer setValue:[NSNumber numberWithInt:i] forKey:@"imageId"];
         
@@ -130,22 +177,19 @@
         x = x + CELL_HEIGHT + x_padding;
         i++;
     }
-    
-    
 }
 
 - (void)refreshSidebarSelections {
     int i = 0;
     
     for (UIImageView *imageView in imageViews) {
-        if (selected == i) {
+        if ([selectedIndices containsObject:[NSNumber numberWithInt:i]]) {
             [imageView setAlpha:.4];
         } else {
             [imageView setAlpha:1];
         }
         i++;
     }
-    
 }
 
 - (void)imageTapped:(id)sender {
@@ -165,9 +209,7 @@
             }]];
             
             [[[self window] rootViewController] presentViewController:alert animated:YES completion:nil];
-            
-            
-            [[NSUserDefaults standardUserDefaults] setObject:@"Okay" forKey:@"FirstTap"];
+            [[NSUserDefaults standardUserDefaults] setObject:@"Okay" forKey:@"FirstTapTutorial"];
             [[NSUserDefaults standardUserDefaults] synchronize];
         } else {
             [self wiggleView:view];
@@ -177,16 +219,19 @@
     }
     
     int newSelected = [[view.layer valueForKey:@"imageId"] intValue];
-    if (newSelected == selected) {
-        selected = -1;
-        [self zoomToFitAnnotationsAndUser];
+    if ([selectedIndices containsObject:[NSNumber numberWithInt:newSelected]]) {
+        [selectedIndices removeObject:[NSNumber numberWithInt:newSelected]];
+        if ([selectedIndices count] == 0) {
+            [self zoomToFitAnnotationsAndUser];
+        } else {
+            [self zoomToFitSelectedAnnotations];
+        }
     } else {
-        selected = newSelected;
-        [self zoomFriend:friend];
+        [selectedIndices addObject:[NSNumber numberWithInt:newSelected]];
+        [self zoomToFitSelectedAnnotations];
     }
     
     [self refreshSidebarSelections];
-    
 }
 
 - (void)wiggleView:(UIView *)view {
@@ -229,30 +274,10 @@
     return 60;
 }
 
-- (void)zoomFriend:(Friend *)friend {
-    
-    dispatch_async(dispatch_get_main_queue(), ^{
-        // zoom in on this friend
-        PersistentCheckin *location = [friend lastCheckin];
-        CLRegion *region = location.region;
-        CGFloat delta = 1200;
-        MKMapPoint origin = MKMapPointForCoordinate(region.center);
-        MKMapRect rect = MKMapRectMake(origin.x - delta, origin.y - delta, delta * 2, delta * 2);
-        [self.mapView setVisibleMapRect:rect animated:YES];
-        
-        // show the tag for this friend.
-        for (id<MKAnnotation> currentAnnotation in self.mapView.annotations) {
-            if ([[currentAnnotation title] isEqualToString:[friend name]]) {
-                [self.mapView selectAnnotation:currentAnnotation animated:YES];
-                break;
-            }
-        }
-    });
-}
-
 - (void)dealloc {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
+
 
 - (MKAnnotationView *)mapView:(MKMapView *)mapView viewForAnnotation:(id<MKAnnotation>)annotation {
     
@@ -295,6 +320,35 @@
     [self zoomToFitAnnotationsAndUser];
 }
 
+- (void)zoomToFitSelectedAnnotations {
+    MKMapRect zoomRect = MKMapRectNull;
+    
+    const CGFloat leeway = 800;
+    
+    int numFriends = 0;
+    
+    MKMapPoint locations[selectedIndices.count+1];
+
+    for (NSNumber *index in selectedIndices) {
+        Friend *friend = [[API sharedAPI] confirmedFriends][index.intValue];
+        if ([friend locationKnown]) {
+            for (id <MKAnnotation> annotation in self.mapView.annotations) {
+                if ([[annotation title] isEqualToString:[friend name]]) {
+                    MKMapPoint annotationPoint = MKMapPointForCoordinate(annotation.coordinate);
+                    locations[numFriends++] = annotationPoint;
+                    MKMapRect pointRect = MKMapRectMake(annotationPoint.x - (leeway / 2), annotationPoint.y - (leeway / 2), leeway, leeway);
+                    zoomRect = MKMapRectUnion(zoomRect, pointRect);
+                    break;
+                }
+            }
+        }
+    }
+    
+    if (!MKMapRectEqualToRect(zoomRect, MKMapRectNull)) {
+        [self.mapView setVisibleMapRect:zoomRect animated:YES];
+    }
+}
+
 - (void)zoomToFitAnnotationsAndUser {
     MKMapRect zoomRect = MKMapRectNull;
     
@@ -318,7 +372,7 @@
 
 - (void)mapView:(MKMapView *)mapView didUpdateUserLocation:(MKUserLocation *)userLocation {
     
-    if (selected >= 0) {
+    if ([selectedIndices count] > 0) {
         return;
     }
     

@@ -39,6 +39,7 @@
 		D0DCC0C41C8F5446008E2ED4 /* AudioHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = D0DCC0C31C8F5446008E2ED4 /* AudioHelper.m */; };
 		D0E169651C27BCAC001E4D06 /* LocationDaemon.m in Sources */ = {isa = PBXBuildFile; fileRef = D0E169641C27BCAC001E4D06 /* LocationDaemon.m */; };
 		D0F11DD31C8B7E91001C884B /* Request.m in Sources */ = {isa = PBXBuildFile; fileRef = D0F11DD21C8B7E91001C884B /* Request.m */; };
+		D0F139B41CB6CEC000988F3B /* JoinMeCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D0F139B31CB6CEC000988F3B /* JoinMeCell.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -120,6 +121,8 @@
 		D0E169641C27BCAC001E4D06 /* LocationDaemon.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LocationDaemon.m; sourceTree = "<group>"; };
 		D0F11DD11C8B7E91001C884B /* Request.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Request.h; sourceTree = "<group>"; };
 		D0F11DD21C8B7E91001C884B /* Request.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Request.m; sourceTree = "<group>"; };
+		D0F139B21CB6CEC000988F3B /* JoinMeCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JoinMeCell.h; sourceTree = "<group>"; };
+		D0F139B31CB6CEC000988F3B /* JoinMeCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JoinMeCell.m; sourceTree = "<group>"; };
 		DA3C63D85F8E2323941624F4 /* Pods-Flawk.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Flawk.release.xcconfig"; path = "Pods/Target Support Files/Pods-Flawk/Pods-Flawk.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -268,6 +271,8 @@
 				D0262C151C8BF7FA00BE506C /* LocationNotKnownCell.m */,
 				D0262C171C8CAA5A00BE506C /* MapCell.h */,
 				D0262C181C8CAA5A00BE506C /* MapCell.m */,
+				D0F139B21CB6CEC000988F3B /* JoinMeCell.h */,
+				D0F139B31CB6CEC000988F3B /* JoinMeCell.m */,
 			);
 			name = "Main Page";
 			sourceTree = "<group>";
@@ -428,6 +433,9 @@
 						CreatedOnToolsVersion = 7.1.1;
 						DevelopmentTeam = 64AY8M9ZGQ;
 						SystemCapabilities = {
+							com.apple.BackgroundModes = {
+								enabled = 1;
+							};
 							com.apple.Push = {
 								enabled = 1;
 							};
@@ -560,6 +568,7 @@
 				D038324D1C113C670001BA79 /* FriendLocationController.m in Sources */,
 				D0262C131C8B93F000BE506C /* UIImageView+Web.m in Sources */,
 				D04031141C90C2B200CA9F85 /* LocationCell.m in Sources */,
+				D0F139B41CB6CEC000988F3B /* JoinMeCell.m in Sources */,
 				D0B6A6C31C0FC147007200E5 /* Friend.m in Sources */,
 				D0262C101C8B912D00BE506C /* AddFriendCell.m in Sources */,
 				D0B6A6C61C0FC292007200E5 /* API.m in Sources */,

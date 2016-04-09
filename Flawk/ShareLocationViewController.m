@@ -108,23 +108,6 @@
         }
     }
     
-    [[API sharedAPI] getLocationAndAreaWithBlock:^{
-        /*[[API sharedAPI] shareLocationWithUsers:selections completion:^(BOOL success) {
-            if (success) {
-                // woah
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    [[self navigationController] popViewControllerAnimated:YES];
-                });
-            } else {
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    UIAlertController *controller = [UIAlertController alertControllerWithTitle:@"Error" message:@"Couldn't share to friends. Try again in a bit." preferredStyle:UIAlertControllerStyleAlert];
-                    [selections removeAllObjects];
-                    [self presentViewController:controller animated:YES completion:nil];
-                    [tableView reloadData];
-                });
-            }
-        }];*/
-    }];
 }
 
 - (IBAction)shareAlways:(id)sender {
@@ -146,28 +129,6 @@
             CLRegion *geofence = [[CLCircularRegion alloc]initWithCenter:center
                                                                 radius:100.0
                                                             identifier:@"Bridge"];
-            
-            
-            [[API sharedAPI] getLocationAndAreaWithBlock:^{
-                /*[[API sharedAPI] shareLocationWithUsers:selections completion:^(BOOL success) {
-                    if (success) {
-                        // woah
-                        dispatch_async(dispatch_get_main_queue(), ^{
-                            [[API sharedAPI] startMonitoringRegion:geofence withLocationName:[[[API sharedAPI] this_user] lastKnownLocation] area:[[[API sharedAPI] this_user] lastKnownArea] friends:selections];
-                            
-                            [[self navigationController] popViewControllerAnimated:YES];
-                        });
-                    } else {
-                        dispatch_async(dispatch_get_main_queue(), ^{
-                            UIAlertController *controller = [UIAlertController alertControllerWithTitle:@"Error" message:@"Couldn't share to friends. Try again in a bit." preferredStyle:UIAlertControllerStyleAlert];
-                            [selections removeAllObjects];
-                            [self presentViewController:controller animated:YES completion:nil];
-                            [tableView reloadData];
-                        });
-                    }
-                }];*/
-            }];
-            
             return;
         }
         case kCLAuthorizationStatusDenied:

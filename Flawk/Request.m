@@ -8,6 +8,7 @@
 
 #import "Request.h"
 #import "API.h"
+#import "PushMaster.h"
 
 @implementation Request
 
@@ -23,9 +24,12 @@
         }
         
         NSString *fromid = self.from;
+        Friend *fromFriend = [Friend friendWithFacebookId:[fromid substringFromIndex:[@"facebook:" length]]];
+        
+        NSDictionary *v = @{@"since" : [NSNumber numberWithInt:[[NSDate date] timeIntervalSince1970]]};
         
         /* Add the friend to your list */
-        [[[[[[[API sharedAPI] firebase] childByAppendingPath:@"users"] childByAppendingPath:[API sharedAPI].firebase.authData.uid] childByAppendingPath:@"friends"] childByAppendingPath:fromid] setValue:[NSNumber numberWithBool:true]];
+        [[[[[[[API sharedAPI] firebase] childByAppendingPath:@"users"] childByAppendingPath:[API sharedAPI].firebase.authData.uid] childByAppendingPath:@"friends"] childByAppendingPath:fromid] updateChildValues:v withCompletionBlock:nil];
         
         /* Add the friend to your OTHER friend's friends list. */
         FQuery *query = [[[[API sharedAPI] firebase] childByAppendingPath:@"fbids"] queryOrderedByKey];
@@ -35,9 +39,22 @@
         
         // Add ourselves to the other person's list
         NSLog(@"[Friend Request] Adding ourselves to the other persons friendlist.");
-        [[[[[[[API sharedAPI] firebase] childByAppendingPath:@"users"] childByAppendingPath:uid] childByAppendingPath:@"friends"] childByAppendingPath:[API sharedAPI].firebase.authData.uid] setValue:[NSNumber numberWithBool:true] withCompletionBlock:^(NSError *error, Firebase *ref) {
+        [[[[[[[API sharedAPI] firebase] childByAppendingPath:@"users"] childByAppendingPath:uid] childByAppendingPath:@"friends"] childByAppendingPath:[API sharedAPI].firebase.authData.uid] updateChildValues:v withCompletionBlock:^(NSError *error, Firebase *ref) {
+            
+            if (error == nil) {
+                [PushMaster sendAcceptedFriendRequestPushToUser:fromFriend completion:^(BOOL sent, NSError *error) {
+                    if (sent || (error == nil)) {
+                        NSLog(@"Push sent!");
+                    } else {
+                        NSLog(@"Push failed: %@", error);
+                    }
+                }];
+                [self setAccepted:true];
+            } else {
+                NSLog(@"Error: Couldn't accept friend request (%@)", error);
+            }
+            
             NSLog(@"[Friend Request] All done (%@, %@)",uid, error);
-            [self setAccepted:true];
             completion(error == nil, error);
             return;
         }];

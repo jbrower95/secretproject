@@ -82,17 +82,13 @@
                          
     UIUserNotificationSettings *notificationSettings = [UIUserNotificationSettings settingsForTypes:UIUserNotificationTypeAlert categories:categories];
                          
-    //[application registerUserNotificationSettings:notificationSettings];
-    //[application registerForRemoteNotifications];
+    [application registerUserNotificationSettings:notificationSettings];
+    [application registerForRemoteNotifications];
     
     if ([launchOptions objectForKey: UIApplicationLaunchOptionsLocationKey] != nil) {
         // this was started because of a boundary crossing. set up the manager to receive the notification.
         [[API sharedAPI] initLocations];
     }
-    
-    [BatchPush setupPush];
-    [Batch startWithAPIKey:@"DEV56DCC99EA675ECD595B1AC57E43"];
-    [BatchPush registerForRemoteNotificationsWithCategories:categories];
     
     return [[FBSDKApplicationDelegate sharedInstance] application:application
                                     didFinishLaunchingWithOptions:launchOptions];
@@ -152,7 +148,8 @@ forRemoteNotification:(NSDictionary *)userInfo withResponseInfo:(NSDictionary *)
 }
 
 - (void)applicationDidBecomeActive:(UIApplication *)application {
-     [FBSDKAppEvents activateApp];
+    [FBSDKAppEvents activateApp];
+    application.applicationIconBadgeNumber = 0;
 }
 
 - (void)applicationWillResignActive:(UIApplication *)application {

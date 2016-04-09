@@ -10,6 +10,7 @@
 #import "NSDate+Prettify.h"
 #import "UIImageView+Web.h"
 #import "API.h"
+#import "PushMaster.h"
 
 @implementation AddFriendCell
 
@@ -46,7 +47,20 @@
                              @"accepted" : [NSNumber numberWithBool:NO]
                              };
     
-    [request updateChildValues:values withCompletionBlock:nil];
+    [request updateChildValues:values withCompletionBlock:^(NSError *error, Firebase *ref) {
+      
+        if (error == nil) {
+            // Send the push
+            [PushMaster sendFriendRequestPushToUser:fr completion:^(BOOL sent, NSError *error) {
+                if (sent || (error == nil)) {
+                    NSLog(@"Push sent!");
+                } else {
+                    NSLog(@"Push failed: %@", error);
+                }
+            }];
+        }
+        
+    }];
     [self.timestampField setText:@"Friend request sent!"];
     [self.addButton setHidden:YES];
 }

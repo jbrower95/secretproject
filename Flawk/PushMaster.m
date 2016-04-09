@@ -24,10 +24,147 @@
             NSString *token = [snapshot value];
             NSString *message = [NSString stringWithFormat:@"%@: where you @?", [[API sharedAPI].this_user name]];
             NSDictionary *payload = @{@"request" : @"location", @"from" : [[API sharedAPI].this_user fbid], @"message" :@{@"title" : [[API sharedAPI].this_user name], @"body" : @"where you @?"}, @"category" : @"REQUEST_LOCATION_CATEGORY", @"sound" : @"default"};
-            [PushMaster sendPushWithCustomPayload:payload toUsersWithTokens:@[token] pushType:@"location_request" completion:completion];
+            
+            
+            NSDictionary *params = @{@"name" : [[API sharedAPI] this_user].name, @"fbid" : [[API sharedAPI] this_user].fbid, @"target" : token};
+            
+            NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"https://flawkpush.appspot.com/whereAtRequest"]];
+            [request setHTTPMethod:@"POST"];
+            [request setHTTPBody:[NSJSONSerialization dataWithJSONObject:params options:nil error:nil]];
+            [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
+            
+            [[[NSURLSession sharedSession] dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+                NSString *htmlresponse = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+                if (!error)
+               {
+                   NSLog(@"Sent push! %@", htmlresponse);
+               } else {
+                   NSLog(@"Failed to send push! %@", htmlresponse);
+               }
+            }] resume];
+            
         }
     }];
 }
+
+
+
+
++ (void)sendAcknowledgePushToUser:(Friend *)f completion:(void (^)(BOOL sent, NSError *error))completion {
+    /*
+     Query for the user's device token.
+     */
+    NSString *uid = [NSString stringWithFormat:@"facebook:%@", f.fbid];
+    [[[[[[API sharedAPI] firebase] childByAppendingPath:@"users"] childByAppendingPath:uid] childByAppendingPath:@"push_token"] observeSingleEventOfType:FEventTypeValue withBlock:^(FDataSnapshot *snapshot) {
+        if (!snapshot.exists) {
+            // Fail gracefully. This user has no push token.
+            if (completion != nil) {
+                completion(false, nil);
+            }
+        } else {
+            // Attempt to send the push.
+            NSString *token = [snapshot value];
+            NSDictionary *params = @{@"name" : [[API sharedAPI] this_user].name, @"fbid" : [[API sharedAPI] this_user].fbid, @"target" : token};
+            
+            NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"https://flawkpush.appspot.com/acknowledge"]];
+            [request setHTTPMethod:@"POST"];
+            [request setHTTPBody:[NSJSONSerialization dataWithJSONObject:params options:nil error:nil]];
+            [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
+            
+            [[[NSURLSession sharedSession] dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+                NSString *htmlresponse = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+                if (!error)
+                {
+                    NSLog(@"Sent push! %@", htmlresponse);
+                } else {
+                    NSLog(@"Failed to send push! %@", htmlresponse);
+                }
+                if (completion) {
+                    completion(error == nil, error);
+                }
+            }] resume];
+            
+        }
+    }];
+}
+
+
+
++ (void)sendFriendRequestPushToUser:(Friend *)f completion:(void (^)(BOOL sent, NSError *error))completion {
+    /*
+     Query for the user's device token.
+     */
+    NSString *uid = [NSString stringWithFormat:@"facebook:%@", f.fbid];
+    [[[[[[API sharedAPI] firebase] childByAppendingPath:@"users"] childByAppendingPath:uid] childByAppendingPath:@"push_token"] observeSingleEventOfType:FEventTypeValue withBlock:^(FDataSnapshot *snapshot) {
+        if (!snapshot.exists) {
+            // Fail gracefully. This user has no push token.
+            completion(false, nil);
+        } else {
+            // Attempt to send the push.
+            NSString *token = [snapshot value];
+            NSDictionary *params = @{@"name" : [[API sharedAPI] this_user].name, @"fbid" : [[API sharedAPI] this_user].fbid, @"target" : token};
+            
+            NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"https://flawkpush.appspot.com/fr_request"]];
+            [request setHTTPMethod:@"POST"];
+            [request setHTTPBody:[NSJSONSerialization dataWithJSONObject:params options:nil error:nil]];
+            [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
+            
+            [[[NSURLSession sharedSession] dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+                NSString *htmlresponse = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+                if (!error)
+                {
+                    NSLog(@"Sent push! %@", htmlresponse);
+                } else {
+                    NSLog(@"Failed to send push! %@", htmlresponse);
+                }
+            }] resume];
+            
+        }
+    }];
+}
+
+
+
+
++ (void)sendAcceptedFriendRequestPushToUser:(Friend *)f completion:(void (^)(BOOL sent, NSError *error))completion {
+    /*
+     Query for the user's device token.
+     */
+    NSString *uid = [NSString stringWithFormat:@"facebook:%@", [f fbid]];
+    [[[[[[API sharedAPI] firebase] childByAppendingPath:@"users"] childByAppendingPath:uid] childByAppendingPath:@"push_token"] observeSingleEventOfType:FEventTypeValue withBlock:^(FDataSnapshot *snapshot) {
+        if (!snapshot.exists) {
+            // Fail gracefully. This user has no push token.
+            completion(false, nil);
+        } else {
+            // Attempt to send the push.
+            NSString *token = [snapshot value];
+            NSDictionary *params = @{@"name" : [[API sharedAPI] this_user].name, @"fbid" : [[API sharedAPI] this_user].fbid, @"target" : token};
+            
+            NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"https://flawkpush.appspot.com/accept_request"]];
+            [request setHTTPMethod:@"POST"];
+            [request setHTTPBody:[NSJSONSerialization dataWithJSONObject:params options:nil error:nil]];
+            [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
+            
+            [[[NSURLSession sharedSession] dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+                NSString *htmlresponse = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+                if (!error)
+                {
+                    NSLog(@"Sent push! %@", htmlresponse);
+                } else {
+                    NSLog(@"Failed to send push! %@", htmlresponse);
+                }
+            }] resume];
+            
+        }
+    }];
+}
+
+
+
+
+
+
+
 
 /* 
          {

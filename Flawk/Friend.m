@@ -51,6 +51,10 @@
     return nil;
 }
 
+- (NSString *)debugDescription {
+    return [NSString stringWithFormat:@"Friend(name=%@, id=%@)", self.name, self.fbid];
+}
+
 - (void)loadFacebookProfilePictureUrlWithBlock:(void (^)(NSString *url))completion {
     
     if (_fbId == nil) {

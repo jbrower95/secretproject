@@ -29,6 +29,8 @@ FOUNDATION_EXPORT NSString *const API_RECEIVED_FRIEND_REQUEST_EVENT;
     LocationDaemon *locationDaemon;
     Firebase *firebase;
     
+    BOOL checkinAvailable;
+    
     NSMutableArray<NSNumber *> *friendHandles;
 }
 
@@ -55,7 +57,10 @@ FOUNDATION_EXPORT NSString *const API_RECEIVED_FRIEND_REQUEST_EVENT;
 - (BOOL)isLoggedIn;
 
 /* Tries to login the user with facebook */
-- (void)login;
+- (void)loginFromViewController:(UIViewController *)vc;
+
+/* Whether or not a location is available */
+- (BOOL)hasLocation;
 
 /* Parses friends and caches them */
 - (void)parseFriends:(NSArray *)friends;
@@ -76,9 +81,9 @@ FOUNDATION_EXPORT NSString *const API_RECEIVED_FRIEND_REQUEST_EVENT;
 
 - (void)sendMessageToUser:(Friend *)pal content:(NSString *)text completionHandler:(void (^)())completionHandler;
 
-- (void)getLocationAndAreaWithBlock:(void (^)())completion;
+- (void)getLocationAndAreaWithBlock:(void (^)(BOOL success))completion;
 
-- (void)shareLocationWithUsers:(NSMutableSet *)users completion:(void (^)(BOOL, NSError*))completionHandler;
+- (void)shareLocationWithUsers:(NSMutableSet *)users completion:(void (^)(BOOL, NSError*))completionHandler emoji:(NSString *)emoji;
 
 - (void)startMonitoringRegion:(CLRegion *)region withLocationName:(NSString *)name area:(NSString *)area friends:(NSSet *)friends;
 

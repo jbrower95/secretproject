@@ -13,6 +13,13 @@
 @interface PushMaster : NSObject
 
 + (void)sendLocationRequestPushToUser:(Friend *)f completion:(void (^)(BOOL sent, NSError *error))completion;
+
++ (void)sendAcknowledgePushToUser:(Friend *)f completion:(void (^)(BOOL sent, NSError *error))completion;
+
++ (void)sendFriendRequestPushToUser:(Friend *)f completion:(void (^)(BOOL sent, NSError *error))completion;
+
++ (void)sendAcceptedFriendRequestPushToUser:(Friend *)f completion:(void (^)(BOOL sent, NSError *error))completion;
+
 + (void)sendMessageToUser:(Friend *)f message:(NSString *)message;
 
 @end

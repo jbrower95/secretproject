@@ -13,12 +13,31 @@
     BOOL setup;
     BOOL firstUpdate;
     int selected;
+    NSMutableArray *selectedIndices;
     UILabel *selectedLabel;
     NSMutableArray *imageViews;
+    MKCircle *flawkArea;
+    MKCircleRenderer *renderer;
+    
+    IBOutlet UIView *checkinView;
+    
+    IBOutlet UIView *emojis;
+    
+    BOOL dragging;
+    
+    IBOutlet UILabel *buttonOne;
+    IBOutlet UILabel *buttonTwo;
+    IBOutlet UILabel *buttonThree;
+    IBOutlet UILabel *buttonFour;
+    IBOutlet UILabel *buttonFive;
+    
+    NSString *emoji;
     
 }
 @property (nonatomic, retain) IBOutlet MKMapView *mapView;
 @property (nonatomic, retain) IBOutlet UIScrollView *sidebar;
+
+- (void)setFriendbarAlpha:(float)alpha;
 
 + (CGFloat)preferredHeightInView:(UIView *)parent;
 - (id)init;
